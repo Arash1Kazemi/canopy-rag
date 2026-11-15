@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technical Deep Dive: Testing, Validators, Results & PDF/OCR Processing</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:3rem 1.5rem;text-align:center}
+header h1{font-size:2.4rem;margin:0 0 .5rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.15rem;max-width:65ch;margin:0 auto}
+.container{max-width:1000px;margin:2.5rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2.2rem;margin-bottom:2.2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.25rem .75rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.7rem;margin-top:0;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:.5rem}
+h3{font-size:1.25rem;margin:1.8rem 0 .6rem;color:var(--ink)}
+p{margin:.7rem 0}
+ul{margin:.7rem 0;padding-left:1.5rem}
+li{margin:.4rem 0}
+code{background:var(--code);padding:.2rem .5rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1.2rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line);margin:1.0rem 0}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1.2rem 1.4rem;border-radius:0 8px 8px 0;margin:1.5rem 0}
+.back{display:inline-block;margin-bottom:1.5rem;text-decoration:none;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">Technical Deep Dive</span>
+  <h1>Tests, Validators, Results & The PDF/OCR Engine</h1>
+  <p>An exhaustive explanation of automated verification, result artifacts, and why we need LVM vision models alongside pypdf.</p>
+</header>
+
+<div class="container">
+  <a href="presentation_phases_4_6.html" class="back">← Back to Presentation Hub</a>
+
+  <!-- SECTION 1: TESTS & VALIDATORS -->
+  <div class="card">
+    <h2>1. Tests & Validators: What, Why, and How</h2>
+    <p>To ensure absolute correctness, our project relies on two distinct layers of automated checks: <strong>Consistency Validators</strong> and <strong>Unit Tests</strong>.</p>
+
+    <h3>A. The 6 Consistency Validators (`tools/run_checks.py`)</h3>
+    <ul>
+      <li><strong>What they do:</strong> They inspect your project data files (`case_study/`, `registry/`, `scope/`, `glossary/`, `metrics/`, and documentation markdown reports) and cross-check them against strict relational rules.</li>
+      <li><strong>Why they exist:</strong> In complex academic projects, human errors happen. For example, if you update the case study manifest to add 21 files instead of 20, or if a markdown table disagrees with the metrics CSV, human reviewers would miss it. The validators act as an automated tripwire.</li>
+      <li><strong>How they are defined:</strong> Written in pure Python in <code>tools/run_checks.py</code>. They parse CSV columns, check file existence on disk, verify text hygiene (UTF-8, LF line endings, no accidental Persian text in English files), and ensure that every metric and hard rule is mapped to a test area.</li>
+    </ul>
+
+    <h3>B. The 328 Unit Tests (`pytest tests/`)</h3>
+    <ul>
+      <li><strong>What they do:</strong> Test individual domain components, workflows, chunking rules, duplicate detectors, and citation formatters in isolation.</li>
+      <li><strong>Why they exist:</strong> Domain-Driven Design (DDD) requires that domain rules are infallible. Unit tests prove that aggregates enforce their invariants (e.g., verifying that an exact duplicate is skipped, that moving a node under itself throws a domain error, or that chunk text matches the Phase 2 baseline exactly).</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 2: RESULTS & EXECUTION ARTIFACTS -->
+  <div class="card">
+    <h2>2. Where Are the Results? (Execution Output Artifacts)</h2>
+    <p>When you run system commands like case study ingestion or duplicate scanning, where do the results go and what do they contain?</p>
+    <ul>
+      <li><strong>Ingestion Runs (`results/ingestion/<run-id>/`):</strong> Every time you run ingestion (e.g., <code>python -m rag_core ingest-case-study --run-id phase4-words80</code>), a dedicated folder is created containing:
+        <ul>
+          <li><code>knowledge.sqlite</code> — The relational database holding all items, versions, chunks, and metadata records.</li>
+          <li><code>catalog.csv</code> — A flat spreadsheet listing every registered knowledge version, its node, file hash, and active status.</li>
+          <li><code>chunks.csv</code> — Every individual text chunk, its source location, and page range.</li>
+          <li><code>ingestion_report.csv</code> — Detailed breakdown of every processed file (success, warning, chunk count).</li>
+          <li><code>duplicates.csv</code> — Advisory logs of exact, near, and overlap duplicate findings (when <code>--detect-duplicates</code> is enabled).</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <!-- SECTION 3: PDFs & GLM-OCR VS PYPDF -->
+  <div class="card">
+    <h2>3. Handling PDFs: Why Use `glm-ocr` (LVM) When We Have `pypdf`?</h2>
+    <p>A very common and critical question during evaluation is: <em>"Why do you need a Vision Language Model like `glm-ocr` to read PDFs when standard Python libraries like `pypdf` already exist?"</em></p>
+
+    <h3>The Short Answer:</h3>
+    <p><strong>`pypdf` reads text layers; `glm-ocr` reads images of pages.</strong> If a PDF is a scanned document (like archived city council meeting minutes D19), it contains <strong>zero digital text</strong>—it is literally just a picture of paper saved inside a PDF container. To `pypdf`, a scanned PDF appears as a completely empty blank page.</p>
+
+    <h3>How Our Hybrid PDF Pipeline Works (`rag_core/ingestion/extractors.py`):</h3>
+    <ol>
+      <li><strong>Text Extraction Attempt:</strong> When a PDF is ingested, our extractor first uses `pypdf` to extract the digital text layer.</li>
+      <li><strong>Density Check:</strong> It calculates the average word count per page.</li>
+      <li><strong>The Fallback Trigger:</strong> If a page has fewer than 5 words on average, the system detects that it is a **scanned page**.</li>
+      <li><strong>Rasterization & LVM Vision Reading:</strong> 
+        <ul>
+          <li>`rag_core/ingestion/png.py` renders that PDF page into a high-resolution PNG image.</li>
+          <li>The image is sent to our local Vision Language Model (`glm-ocr` running on Ollama).</li>
+          <li>The LVM "looks" at the image of the scanned page, performs optical character recognition (OCR) and layout understanding, and returns the transcribed text.</li>
+        </ul>
+      </li>
+    </ol>
+
+    <div class="highlight">
+      <strong>Why this is brilliant:</strong> It gives your RAG system the superpower to ingest both modern digital documents and messy historical scanned paperwork without human pre-processing.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

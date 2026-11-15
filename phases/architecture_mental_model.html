@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture Masterclass: Mental Model & Component Interaction</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:3rem 1.5rem;text-align:center}
+header h1{font-size:2.4rem;margin:0 0 .5rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.15rem;max-width:65ch;margin:0 auto}
+.container{max-width:1000px;margin:2.5rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2.2rem;margin-bottom:2.2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.25rem .75rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.7rem;margin-top:0;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:.5rem}
+h3{font-size:1.25rem;margin:1.8rem 0 .6rem;color:var(--ink)}
+p{margin:.7rem 0}
+ul{margin:.7rem 0;padding-left:1.5rem}
+li{margin:.4rem 0}
+code{background:var(--code);padding:.2rem .5rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1.2rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line);margin:1.0rem 0}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1.2rem 1.4rem;border-radius:0 8px 8px 0;margin:1.5rem 0}
+.flow-box{background:var(--bg);border:1px solid var(--line);padding:1.2rem;border-radius:8px;margin:1rem 0;font-family:ui-monospace,Consolas,monospace;font-size:.88rem;white-space:pre;overflow-x:auto;line-height:1.4}
+.back{display:inline-block;margin-bottom:1.5rem;text-decoration:none;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">Architecture Masterclass</span>
+  <h1>The Overall Mental Model & Component Interaction</h1>
+  <p>An exhaustive, deep-dive technical guide on how the system's architecture, database persistence, and domain boundaries talk to each other.</p>
+</header>
+
+<div class="container">
+  <a href="presentation_phases_4_6.html" class="back">← Back to Presentation Hub</a>
+
+  <!-- SECTION 1 -->
+  <div class="card">
+    <h2>1. The Core Mental Model: Domain-Driven Design (DDD)</h2>
+    <p>When you build an AI system or RAG application, the biggest rookie mistake is mixing up your business logic (what a chunk is, what a knowledge version represents, how organizational hierarchies operate) with your technical infrastructure (SQLite SQL statements, Ollama REST API calls, pypdf binary reading).</p>
+    <p>In our project, we use <strong>Domain-Driven Design (DDD)</strong>. The system is split into two strict worlds:</p>
+    <ul>
+      <li><strong>The Inner Domain (<code>rag_core/knowledge/</code>, <code>rag_core/organization/</code>):</strong> Pure Python logic. It knows <em>nothing</em> about SQLite, filesystems, HTTP, or Ollama. It only knows business rules (aggregates, value objects, domain invariants).</li>
+      <li><strong>The Outer Infrastructure (<code>rag_core/infrastructure/</code>, <code>rag_core/ingestion/</code>):</strong> Adapters that plug into the domain. They talk to SQLite, read PDF bytes, call Ollama, and write CSV files.</li>
+    </ul>
+    <div class="highlight">
+      <strong>Why this matters:</strong> If you wanted to swap SQLite for PostgreSQL tomorrow, or Ollama for Llama.cpp, you would write a new adapter in <code>infrastructure/</code> without changing a single line of business logic in the domain core.
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="card">
+    <h2>2. How Components Talk to Each Other (Ports & Adapters)</h2>
+    <p>Components communicate via strict boundaries. They never reach across layers arbitrarily. Here is how data and commands flow through the system:</p>
+    
+    <div class="flow-box">[ CLI Command / User ]
+         │
+         ▼
+[ Application Services ] (e.g., IngestionService, OrganizationService)
+         │
+         ├─────────────────────────┐
+         ▼                         ▼
+[ Domain Aggregates ]    [ Infrastructure Ports / Adapters ]
+(Guards rules & state)   (Reads PDFs, calls Ollama, talks to SQLite)
+         │                         │
+         └─────────────────────────┘
+                   │
+                   ▼
+       [ Persistence Layer ] (SQLite & CSV Exports)</div>
+
+    <h3>Step-by-Step Interaction Example (Ingestion):</h3>
+    <ol>
+      <li><strong>CLI / Entrypoint (`rag_core/__main__.py`)</strong> receives a command like <code>python -m rag_core ingest-case-study</code>.</li>
+      <li><strong>Application Service (`IngestionService`)</strong> coordinates the run. It asks the hierarchy repository for node rules, and asks extractors for raw text.</li>
+      <li><strong>Extractors (`rag_core/ingestion/extractors.py`)</strong> read the raw file bytes (DOCX, PDF, MD) or invoke the LVM vision adapter if it's a scanned PDF.</li>
+      <li><strong>Domain Model (`KnowledgeItem`, `KnowledgeVersion`, `KnowledgeChunk`)</strong> receives the raw data, applies chunking policies (<code>words80</code>), computes SHA-256 fingerprints, and checks lifecycle states.</li>
+      <li><strong>Infrastructure Repositories (`SqliteKnowledgeRepository`)</strong> persist the resulting records into SQLite and export mirror CSVs (`catalog.csv`, `chunks.csv`).</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="card">
+    <h2>3. How We Are Using the Database Thingy (Persistence Strategy)</h2>
+    <p>You might wonder: <em>Why do we even need SQLite and CSV databases? Why not keep everything in memory?</em></p>
+    
+    <h3>A. Why SQLite?</h3>
+    <ul>
+      <li><strong>ACID Guarantees & Relational Integrity:</strong> When we ingest 20 documents and 100+ chunks across 7 nodes, we need relational constraints. A chunk belongs strictly to a knowledge version; a version belongs to an item; an item belongs to a node. SQLite enforces foreign keys and guarantees data isn't half-saved if an error occurs.</li>
+      <li><strong>Stateful Queries:</strong> When Phase 8 retrieval runs, it needs to query: <em>"Give me all active chunks belonging specifically to Node N2."</em> SQLite executes this query instantly using indexed lookups.</li>
+      <li><strong>Audit Trail:</strong> Version 1 and Version 2 of document D10 both need to be stored for history, but only v2 is active. SQLite handles versioned rows effortlessly.</li>
+    </ul>
+
+    <h3>B. Why Duplicate CSV Mirroring?</h3>
+    <p>Every time SQLite writes data, our infrastructure code (`rag_core/infrastructure/csv_export.py`) simultaneously writes human-readable CSV snapshots (`catalog.csv`, `chunks.csv`, `duplicates.csv`, `ingestion_report.csv`). This gives you the best of both worlds: fast relational queries via SQLite, and instant human inspection via CSV files.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
