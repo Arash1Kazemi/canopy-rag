@@ -1,0 +1,33 @@
+experiment,case,word_group_size,resemblance,containment,shared_groups,note
+A different documents,D11 vs D14 (highest resemblance),3,0.040,0.160,4,
+A different documents,D11 vs D14 (highest containment),3,0.040,0.160,4,
+A different documents,D11 vs D14 (highest resemblance),5,0.020,0.087,2,
+A different documents,D11 vs D14 (highest containment),5,0.020,0.087,2,
+A different documents,D19 vs D20 (highest resemblance),8,0.000,0.000,0,
+A different documents,D01 vs D02 (highest containment),8,0.000,0.000,0,
+B edited copy,1% of words replaced,3,0.936,0.972,,kind in 5 seeds: near 5
+B edited copy,2% of words replaced,3,0.882,0.944,,kind in 5 seeds: near 5
+B edited copy,5% of words replaced,3,0.725,0.847,,kind in 5 seeds: overlap 5
+B edited copy,10% of words replaced,3,0.539,0.708,,kind in 5 seeds: overlap 5
+B edited copy,20% of words replaced,3,0.292,0.456,,kind in 5 seeds: overlap 5
+B edited copy,40% of words replaced,3,0.096,0.179,,kind in 5 seeds: overlap 5
+B edited copy,1% of words replaced,5,0.894,0.948,,kind in 5 seeds: near 5
+B edited copy,2% of words replaced,5,0.812,0.900,,"kind in 5 seeds: near 4, overlap 1"
+B edited copy,5% of words replaced,5,0.600,0.754,,kind in 5 seeds: overlap 5
+B edited copy,10% of words replaced,5,0.381,0.555,,kind in 5 seeds: overlap 5
+B edited copy,20% of words replaced,5,0.149,0.261,,kind in 5 seeds: overlap 5
+B edited copy,40% of words replaced,5,0.025,0.049,,kind in 5 seeds: none 5
+B edited copy,1% of words replaced,8,0.843,0.918,,kind in 5 seeds: near 5
+B edited copy,2% of words replaced,8,0.722,0.842,,kind in 5 seeds: overlap 5
+B edited copy,5% of words replaced,8,0.461,0.635,,kind in 5 seeds: overlap 5
+B edited copy,10% of words replaced,8,0.227,0.372,,kind in 5 seeds: overlap 5
+B edited copy,20% of words replaced,8,0.067,0.126,,"kind in 5 seeds: none 2, overlap 3"
+B edited copy,40% of words replaced,8,0.002,0.004,,kind in 5 seeds: none 5
+C passage inside another,D18 in D16,5,0.017,0.038,5,10 words inserted -> none
+C passage inside another,D18 in D16,5,0.050,0.107,15,20 words inserted -> none
+C passage inside another,D18 in D16,5,0.111,0.209,33,40 words inserted -> overlap
+C passage inside another,D18 in D16,5,0.238,0.410,71,80 words inserted -> overlap
+C passage inside another,D18 in D16,5,0.393,0.676,117,133 words inserted -> overlap
+D format copy,D18 as DOCX,3,1.000,1.000,172,
+D format copy,D18 as DOCX,5,1.000,1.000,173,
+D format copy,D18 as DOCX,8,1.000,1.000,170,

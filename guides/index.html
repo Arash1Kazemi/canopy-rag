@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Engineering Guides</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <b>AI Engineering Guides</b>
+  <a class="on" href="index.html">Home</a>
+  <a href="senior-path.html">Senior path</a>
+  <a href="rag.html">RAG</a>
+  <a href="evals.html">Evals</a>
+  <a href="local-models.html">Local models</a>
+  <a href="engineering.html">Engineering</a>
+</div></header>
+<main>
+<h1>AI Engineering Guides</h1>
+<p class="lead">Five pages that go deeper than the project docs. They are written for the person who wants to be a senior AI engineer, not only to finish the project. Each page is tied to your project, so every idea has a place to try it.</p>
+
+<div class="box check"><b class="t">How these pages work</b>
+  <ul>
+    <li><b>Try it here</b> (green): a small exercise on your own project. Do it, it is where the learning happens.</li>
+    <li><b>Go check this yourself</b> (blue): a place to read. I only list links I opened and confirmed exist. I do not summarize them, so you learn to read the source.</li>
+    <li><b>Senior habit</b> (white): what separates a senior engineer from a junior one on this topic.</li>
+    <li><b>Careful</b> (yellow): a mistake that is easy to make.</li>
+  </ul>
+</div>
+
+<h2>The five pages</h2>
+<div class="grid">
+  <a class="card" href="senior-path.html"><h3>1. The senior path</h3>
+    <p><span class="tag">career</span><span class="tag">all phases</span></p>
+    <p>What "senior" means in AI engineering, a skill ladder with a self-check, a reading list, and a plan for the next 12 months.</p></a>
+  <a class="card" href="rag.html"><h3>2. RAG in depth</h3>
+    <p><span class="tag">Phases 4, 5, 8</span><span class="tag">book ch. 6</span></p>
+    <p>Where RAG really fails, how to measure retrieval, chunking choices, hybrid search, reranking, versions and duplicates.</p></a>
+  <a class="card" href="evals.html"><h3>3. Evaluation and judges</h3>
+    <p><span class="tag">Phases 10, 14</span><span class="tag">book ch. 3, 4</span></p>
+    <p>Why 26 questions is a small test, how to put error bars on a score, and how to trust (or not trust) a judge model.</p></a>
+  <a class="card" href="local-models.html"><h3>4. Small local models</h3>
+    <p><span class="tag">Phases 2, 8, 14</span><span class="tag">book ch. 2, 9</span></p>
+    <p>Memory math in words, quantization, context length, speed, and how to run an offline system that you can trust.</p></a>
+  <a class="card" href="engineering.html"><h3>5. Engineering habits</h3>
+    <p><span class="tag">Phases 3, 15</span><span class="tag">DDD, tests</span></p>
+    <p>Ports and adapters, property tests, reproducible runs, decision records, security for LLM systems, and how to write about your work.</p></a>
+</div>
+
+<h2>Where you are on the project map</h2>
+<div class="wrap"><table>
+<tr><th>Phase</th><th>State</th><th>The guide page that helps most</th></tr>
+<tr><td>1. Project start and domain discovery</td><td><span class="pill good">done</span></td><td>Evals (how to define success)</td></tr>
+<tr><td>2. Offline models and the technical baseline</td><td><span class="pill good">done</span></td><td>Local models, Evals</td></tr>
+<tr><td>3. DDD architecture and core domain model</td><td><span class="pill warn">built, in review</span></td><td>Engineering</td></tr>
+<tr><td>4. Document ingestion foundation</td><td><span class="pill warn">built, in review</span></td><td>RAG (chunking), Engineering</td></tr>
+<tr><td>5. Versioning, chunking, duplicate detection</td><td>next</td><td>RAG (versions and duplicates)</td></tr>
+<tr><td>8. RAG retrieval core and question answering</td><td>later</td><td>RAG, Local models</td></tr>
+<tr><td>10. LLM as a judge and quality control</td><td>later</td><td>Evals</td></tr>
+<tr><td>14. Prompt testing, model tuning, sample set evaluation</td><td>later</td><td>Evals, Local models</td></tr>
+<tr><td>15. Unit tests and technical hardening</td><td>later</td><td>Engineering</td></tr>
+</table></div>
+
+<h2>Ten rules a senior engineer keeps</h2>
+<ol>
+  <li><b>Measure before you change.</b> If you cannot say how you will know it got better, do not change it yet.</li>
+  <li><b>Look at the data.</b> Read 50 real failures by hand before you tune anything. Most problems are visible in 20 minutes of reading.</li>
+  <li><b>A number without an error bar is a guess.</b> Small test sets move a lot by chance (see the Evals page).</li>
+  <li><b>Change one thing at a time</b>, and write down what you changed, the date, and the run id.</li>
+  <li><b>Retrieval first, generation second.</b> If the right text is not retrieved, no model can fix the answer.</li>
+  <li><b>Keep the model behind an interface.</b> Models change every few months. Your domain rules should not.</li>
+  <li><b>Pin everything</b>: model tag, prompt version, chunk policy, random seed, data version. A result you cannot reproduce is not a result.</li>
+  <li><b>Fail loudly.</b> A system that says "I do not know" is better than one that is confidently wrong. Test the "no answer" cases on purpose.</li>
+  <li><b>Write down decisions and their reasons</b> (you already do this: A1 to A20). Future you will not remember why.</li>
+  <li><b>Learn by building small and reading the source.</b> A weekend project that you finished teaches more than a course you half watched.</li>
+</ol>
+
+<footer>Every external link on these pages was opened and confirmed to exist on 2026-11-05 (some sites block scripts, so a link that opens in your browser is the test that matters). If a link is dead when you read this, search for the title. These guides add depth; they do not replace the proposal or the book, and nothing here sets a metric target.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Senior Path</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <b>AI Engineering Guides</b>
+  <a href="index.html">Home</a>
+  <a class="on" href="senior-path.html">Senior path</a>
+  <a href="rag.html">RAG</a>
+  <a href="evals.html">Evals</a>
+  <a href="local-models.html">Local models</a>
+  <a href="engineering.html">Engineering</a>
+</div></header>
+<main>
+<h1>The senior path</h1>
+<p class="lead">"Senior" is not "knows more tools". It is "can be trusted with an unclear problem and a real cost of being wrong". This page shows what that means in AI engineering and how to grow toward it.</p>
+
+<h2>1. What senior means here</h2>
+<p>AI engineering (the book's term) is building applications on top of foundation models that someone else trained. The hard parts are not the model calls. They are the six things below. Notice that none of them is "knowing the newest model".</p>
+<div class="wrap"><table>
+<tr><th>Dimension</th><th>Junior</th><th>Senior</th></tr>
+<tr><td><b>Framing</b></td><td>Builds what the ticket says.</td><td>Asks what decision the system supports, what a wrong answer costs, and what "good enough" means, before writing code.</td></tr>
+<tr><td><b>Evaluation</b></td><td>"It looks good on my examples."</td><td>Has a test set, knows its size and its blind spots, reports error bars, and rejects changes that do not clearly win.</td></tr>
+<tr><td><b>Debugging</b></td><td>Changes the prompt and tries again.</td><td>Finds which stage failed (retrieval, context, generation, parsing) by reading traces, then fixes that stage.</td></tr>
+<tr><td><b>Systems</b></td><td>One script that works today.</td><td>Clear boundaries, models behind interfaces, reproducible runs, cost and latency known, failure modes handled.</td></tr>
+<tr><td><b>Judgment</b></td><td>Picks the biggest model or the newest trick.</td><td>Picks the simplest thing that meets the need, and can explain the trade-off in cost, speed, safety and effort.</td></tr>
+<tr><td><b>Communication</b></td><td>Shows a demo.</td><td>Writes a short document that a stranger can read, with the question, the method, the result, the limits, and what to do next.</td></tr>
+</table></div>
+
+<div class="box senior"><b class="t">Senior habit</b>
+  The most valuable sentence in the field is "I do not know yet, here is how I will find out." Your project already trains this: you wrote <i>"Metric targets are not set yet. Never invent numbers."</i> Keep that discipline for your whole career.</div>
+
+<h2>2. A skill ladder with a self-check</h2>
+<p>Be honest. Mark the level where you could answer most of the questions <i>without looking anything up</i>. The goal is not to rush up; it is to see which gap is next.</p>
+
+<details open><summary>Level 1: can build with a model</summary>
+<ul>
+  <li>Call a local model and an embedding model from Python. (You did this in Phase 2.)</li>
+  <li>Write a prompt, change it, and see the difference.</li>
+  <li>Explain tokens, context window, temperature, and embeddings in one sentence each.</li>
+</ul></details>
+
+<details open><summary>Level 2: can build a working RAG and test it</summary>
+<ul>
+  <li>Chunk, embed, store, retrieve, assemble a prompt, and cite sources.</li>
+  <li>Explain why an answer failed: was the right chunk retrieved or not?</li>
+  <li>Write unit tests for the non-AI parts and a small set of evaluation questions for the AI parts.</li>
+  <li><b>Where you are:</b> Phases 2 to 4 of this project sit around here.</li>
+</ul></details>
+
+<details open><summary>Level 3: works evidence-first and owns a whole area</summary>
+<ul>
+  <li>Reports every metric with an error bar and says when two systems are <i>not</i> clearly different.</li>
+  <li>Builds a failure taxonomy from real traces and fixes the most common failure first.</li>
+  <li>Compares a judge model with human labels before trusting it.</li>
+  <li>Knows the cost: memory, latency, and how each grows with context length.</li>
+  <li>Keeps prompts, models and data versioned so any past result can be repeated.</li>
+</ul></details>
+
+<details open><summary>Level 4: senior, designs and sets standards</summary>
+<ul>
+  <li>Decides what not to build. Says no to a feature with a clear reason.</li>
+  <li>Designs the evaluation <i>before</i> the system, so the team can argue with numbers.</li>
+  <li>Handles security and privacy for LLM systems (prompt injection, data leaks) as part of the design.</li>
+  <li>Makes other people better: writes the guide, reviews the design, teaches the habit.</li>
+  <li>Can move between layers: data, retrieval, model, product, and cost.</li>
+</ul></details>
+
+<div class="box try"><b class="t">Try it here</b>
+  Copy the Level 3 list into a file. Next to each line write "yes", "partly" or "no", and one piece of evidence from this project. The "no" lines are your reading list for the next month. Redo it every three months.</div>
+
+<h2>3. The skills, and where to practise each in your project</h2>
+<div class="wrap"><table>
+<tr><th>Skill</th><th>You can do it when…</th><th>Practise it in</th></tr>
+<tr><td>Retrieval</td><td>You can compute recall at k and say why a miss happened.</td><td>Phase 8, and the chunking comparison now</td></tr>
+<tr><td>Evaluation design</td><td>You can build a test set with hard cases and explain its limits.</td><td>The 26-question answer key, and 10 unseen questions (Teammate A)</td></tr>
+<tr><td>Statistics for evals</td><td>You can say whether 21/26 beats 19/26. (Spoiler: usually no. See Evals.)</td><td>Every run comparison</td></tr>
+<tr><td>Prompting with structure</td><td>You get valid JSON back, or you handle and count the failures.</td><td>Phases 7, 10, 13</td></tr>
+<tr><td>Data work</td><td>You can find duplicates, versions and conflicts, and decide which wins.</td><td>D10 (versions), D12 (duplicate), D11 vs D16 (conflict)</td></tr>
+<tr><td>Systems and cost</td><td>You can predict whether a model fits in 4 GB before you download it.</td><td>The laptop limit, Phase 14 model comparison</td></tr>
+<tr><td>Architecture</td><td>You can say which object owns each rule and prove it with a test.</td><td>Phase 3 and 4 code in <code>rag_core/</code></td></tr>
+<tr><td>Writing</td><td>A stranger can repeat your experiment from your write-up.</td><td>Every report in <code>docs/</code></td></tr>
+</table></div>
+
+<h2>4. Reading list</h2>
+<p>Pick one item per week. Do not try to read everything. Read with a question in mind, for example "what would I change in my project after this?"</p>
+
+<h3>Books</h3>
+<ul>
+  <li><b>AI Engineering</b> by Chip Huyen (O'Reilly, 2025). You already have it. Use it as the map. Tool names age fast, so check any library it names against that library's current documentation.</li>
+  <li><b>Architecture Patterns with Python</b> (known as "Cosmic Python"). Ports and adapters, repositories, and testing in Python. Directly matches your Phase 3 design. It is free online.</li>
+  <li><b>Domain-Driven Design</b> by Eric Evans, and <b>Implementing Domain-Driven Design</b> by Vaughn Vernon. Read the sections on aggregates and bounded contexts, not the whole thing at once.</li>
+  <li><b>Designing Data-Intensive Applications</b> by Martin Kleppmann. Long. Read the chapters on storage, data models and consistency when you reach Phase 11 (storing and delivering packages).</li>
+</ul>
+
+<h3>Blogs and guides</h3>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <ul>
+    <li><a href="https://hamel.dev/blog/posts/evals/">Hamel Husain: "Your AI product needs evals"</a>. The most practical start for evaluation. Read it before Phase 10.</li>
+    <li><a href="https://eugeneyan.com/writing/llm-patterns/">Eugene Yan: "Patterns for Building LLM-based Systems &amp; Products"</a>. One page that maps the whole field (evals, RAG, guardrails, feedback).</li>
+    <li><a href="https://huyenchip.com/">Chip Huyen's blog</a>. The book's author writes about the same topics with newer examples.</li>
+    <li><a href="https://lilianweng.github.io/">Lilian Weng's blog</a>. Long, careful surveys of research topics. Good when you want depth on one idea.</li>
+    <li><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic: "Building effective agents"</a>. Read it for the advice to start simple and add complexity only when it earns its place. That applies to RAG too.</li>
+    <li><a href="https://www.anthropic.com/news/contextual-retrieval">Anthropic: "Contextual Retrieval"</a>. An example of improving retrieval by adding context to each chunk. Read it critically: it is a vendor's own result on its own data.</li>
+    <li><a href="https://developers.google.com/machine-learning/guides/rules-of-ml">Google: "Rules of Machine Learning"</a>. Older and for classic ML, but the advice (start with a metric, a simple model, and good logging) still holds. This site may refuse scripts; it opens in a normal browser.</li>
+    <li><a href="https://karpathy.ai/zero-to-hero.html">Andrej Karpathy: "Neural Networks: Zero to Hero"</a>. Video course that builds a language model from scratch. Do it slowly and type the code yourself. It gives you the intuition that makes all the practical advice make sense.</li>
+  </ul>
+</div>
+
+<h3>Papers worth knowing by name</h3>
+<p>You do not need to understand every equation. Read the abstract, the figures, and the limitations section. All five links below were checked: the arXiv title matches.</p>
+<div class="wrap"><table>
+<tr><th>Paper</th><th>Why it matters for you</th></tr>
+<tr><td><a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a> (Lewis et al.)</td><td>The paper that named RAG. Notice how different the original setup is from today's practice.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2307.03172">Lost in the Middle: How Language Models Use Long Contexts</a></td><td>Models use information at the start and end of a long context better than the middle. This matters for how you order retrieved chunks.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2306.05685">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a></td><td>The standard reference on using a model as a judge, including its biases. Read before Phase 10.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2411.00640">Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations</a></td><td>Short and practical. Shows how to put error bars on eval scores. Pairs with the Evals page.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2104.08663">BEIR: A Heterogenous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a></td><td>How retrieval is benchmarked, and the finding that a method strong on one dataset can be weak on another. A reason to test on your own data.</td></tr>
+</table></div>
+
+<div class="box check"><b class="t">Go check this yourself: how to read a paper</b>
+  Search for S. Keshav, "How to Read a Paper" (2007). It is two pages and teaches a three-pass method: skim for the shape, read for the main claim, then read to find the weak points. Apply it to the five papers above.</div>
+
+<h2>5. A 12-month plan (a suggestion; change it to fit your hours)</h2>
+<p>Your hours per week are not stated, so this plan is in order, not in hours.</p>
+<div class="wrap"><table>
+<tr><th>Months</th><th>Focus</th><th>Proof that you did it</th></tr>
+<tr><td>1 to 3</td><td>Finish Phases 3 to 5 properly. Add error bars to every comparison. Read the evals and RAG pages here and do their "Try it here" boxes.</td><td>An evaluation report with confidence intervals and a failure table.</td></tr>
+<tr><td>4 to 6</td><td>Phase 8: the real retrieval core. Add hybrid search and a reranker as <i>experiments</i>, each judged against the baseline.</td><td>A one-page "what helped and what did not" note, with numbers.</td></tr>
+<tr><td>7 to 9</td><td>Phase 10 and 14: the judge. Measure its agreement with your own labels.</td><td>A table of judge versus human agreement per question type.</td></tr>
+<tr><td>10 to 12</td><td>Phase 15 and 16: harden, document, present. Publish one write-up of what you learned.</td><td>A public repository and one article that a stranger can follow.</td></tr>
+</table></div>
+
+<h2>6. Make your work visible</h2>
+<ul>
+  <li><b>A README that tells a story</b>: the problem, the constraint (offline, small models, 4 GB), the design, the results with error bars, and the honest limits.</li>
+  <li><b>An evaluation report</b>. Most candidates show a demo; very few show a measured result with its uncertainty. This is how you stand out.</li>
+  <li><b>Decision records</b>. Your A1 to A20 list is already this. Employers read it as evidence of judgment.</li>
+  <li><b>One failure write-up</b>: "the three ways my RAG failed, and how I found them". People read these more than success stories.</li>
+</ul>
+<div class="box warn"><b class="t">Careful</b>
+  Before you publish anything, check it contains no private data and no real organization names. The City is fictional, so keep it that way in public posts.</div>
+
+<h2>7. Self-test: can you answer these in two minutes each?</h2>
+<ol>
+  <li>A RAG answer is wrong. List the stages where it could have failed, and how you would tell which one.</li>
+  <li>Why does retrieving more chunks not always improve the answer?</li>
+  <li>You changed a prompt and the score went from 19/26 to 21/26. What do you say to your supervisor?</li>
+  <li>Name two biases of a judge model and one way to reduce each.</li>
+  <li>A 4B model at 4-bit fits in memory with a short context. Why might it fail with a long one?</li>
+  <li>Where do you put the rule "a terminal node has no children", and why not in the database only?</li>
+  <li>Two documents state different values for the same fact. How should the system behave?</li>
+  <li>What would you log so that a bad answer from last week can be reproduced?</li>
+  <li>What can a malicious document do to a RAG system, and what is one defence?</li>
+  <li>When would you not use an LLM for a step?</li>
+</ol>
+<p>The answers are spread across the other four pages. When you can answer all ten without notes, you are close to Level 3.</p>
+
+<h2>8. Research directions that fit your project</h2>
+<p>You said you want to do research on LLM systems later. These are <b>questions to test, not claims</b>. I have not run them and I do not know the answers.</p>
+<ul>
+  <li>With small local models, does chunking that follows document headings retrieve better than fixed 80-word windows? (Your E3 run is the first small test of this.)</li>
+  <li>When an organization has layers, how much does limiting retrieval to one node reduce wrong-node answers, and what does it cost in missed answers?</li>
+  <li>How reliable is a 3 to 4B judge model on rubric scoring compared with human labels, and which question types does it get wrong?</li>
+  <li>How should a system treat a newer document version that conflicts with older answers already given?</li>
+</ul>
+<div class="box check"><b class="t">Go check this yourself</b>
+  Before you claim any of these is new, search for prior work: Google Scholar, arXiv (search "retrieval-augmented generation" with your keyword), and the reference lists of the five papers above. A research habit is knowing what is already known.</div>
+
+<footer>Part of the AI Engineering Guides. Links checked 2026-11-05.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Project Hub</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --warn:#9a5b00; --warn-soft:#fdf0d8; --bad:#a32d2d; --bad-soft:#fbe6e6;
+  --purple:#6b46c1; --purple-soft:#efe8fb;
+  --gray-soft:#eceae3; --code:#f0eee8;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --warn:#f0b45a; --warn-soft:#3a2d12; --bad:#f19a9a; --bad-soft:#3b1d1d;
+    --purple:#c4a8ff; --purple-soft:#2b2340;
+    --gray-soft:#262a31; --code:#23262d; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+  --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+  --warn:#f0b45a; --warn-soft:#3a2d12; --bad:#f19a9a; --bad-soft:#3b1d1d;
+  --purple:#c4a8ff; --purple-soft:#2b2340;
+  --gray-soft:#262a31; --code:#23262d; --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+code{background:var(--code);padding:.1em .4em;border-radius:5px;font:.88em ui-monospace,Consolas,monospace}
+h1,h2,h3{line-height:1.25;font-weight:600;margin:0}
+h1{font-size:2rem;margin:.3rem 0 .6rem}
+h2{font-size:1.4rem;margin:1.6rem 0 .5rem}
+h3{font-size:1.05rem;margin:1rem 0 .4rem}
+p{margin:.45rem 0}
+ul{margin:.3rem 0;padding-left:1.2rem}
+li{margin:.15rem 0}
+
+/* top bar */
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{max-width:1120px;margin:0 auto;padding:.6rem 16px;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.brand{font-weight:700;margin-right:auto}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+nav.tabs{display:flex;gap:.3rem;flex-wrap:wrap}
+nav.tabs a{padding:.4rem .8rem;border-radius:99px;text-decoration:none;color:var(--muted);font-size:.92rem}
+nav.tabs a:hover{background:var(--gray-soft);color:var(--ink)}
+nav.tabs a.on{background:var(--accent);color:#fff}
+.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.35rem .7rem;border-radius:8px;cursor:pointer;font:inherit;font-size:.85rem}
+
+main{max-width:1120px;margin:0 auto;padding:1.2rem 16px 4rem}
+.view{display:none}
+.view.on{display:block}
+.eyebrow{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.lead{font-size:1.08rem;color:var(--muted);max-width:70ch}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.15rem;box-shadow:var(--shadow)}
+.grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:.8rem 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.7rem;margin:1rem 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:.8rem 1rem}
+.stat b{display:block;font-size:1.6rem;line-height:1.1;color:var(--accent)}
+.stat span{font-size:.84rem;color:var(--muted)}
+.tag{display:inline-block;font-size:.74rem;font-weight:600;padding:.1rem .55rem;border-radius:99px;background:var(--gray-soft);color:var(--muted)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.acc{background:var(--accent-soft);color:var(--accent)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.purple{background:var(--purple-soft);color:var(--purple)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.7rem 1rem;border-radius:0 10px 10px 0;margin:.9rem 0}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+
+/* blueprint notes: what the real site adds later */
+.bp{border:1.5px dashed var(--purple);background:var(--purple-soft);border-radius:10px;padding:.6rem .9rem;margin:1rem 0;font-size:.9rem}
+.bp b{color:var(--purple)}
+body.hide-bp .bp{display:none}
+
+/* roadmap */
+.legend{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0;font-size:.85rem;color:var(--muted);align-items:center}
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.7rem;margin:1rem 0}
+.part{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:.75rem .9rem;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:border-color .15s}
+.part:hover{border-color:var(--accent)}
+.part b{display:block;margin-top:.35rem;font-size:.98rem}
+.part .who{display:block;font-size:.8rem;color:var(--muted);margin-top:.3rem}
+.part.done{border-color:var(--good)}
+.part.next{border-color:var(--accent);background:var(--accent-soft)}
+.part.open{outline:3px solid var(--accent);outline-offset:1px}
+.detail{grid-column:1/-1;background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:1.1rem 1.25rem;box-shadow:var(--shadow)}
+.detail .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+.detail h3{margin-top:.2rem}
+.detail .head{display:flex;justify-content:space-between;gap:1rem;align-items:start}
+.close{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:.2rem .6rem;cursor:pointer;font:inherit}
+
+/* team */
+.person{border-top:5px solid var(--accent)}
+.person.a{border-top-color:var(--warn)}
+.person.b{border-top-color:var(--purple)}
+.person.c{border-top-color:var(--good)}
+.person h3{margin-top:.1rem}
+.check{display:flex;gap:.5rem;align-items:flex-start;margin:.3rem 0;font-size:.93rem}
+.check input{margin-top:.3rem;width:1rem;height:1rem;flex:none}
+.progress{height:8px;background:var(--gray-soft);border-radius:99px;margin:.5rem 0 .2rem;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--good);width:0;transition:width .2s}
+.small{font-size:.84rem;color:var(--muted)}
+.done-when{background:var(--good-soft);color:var(--ink);border-radius:8px;padding:.5rem .7rem;font-size:.9rem;margin-top:.6rem}
+
+/* steps */
+ol.steps{counter-reset:s;list-style:none;padding:0}
+ol.steps>li{counter-increment:s;position:relative;padding:.7rem .9rem .7rem 3rem;margin:.5rem 0;background:var(--card);border:1px solid var(--line);border-radius:10px}
+ol.steps>li::before{content:counter(s);position:absolute;left:.9rem;top:.7rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:#fff;font-size:.85rem;display:grid;place-items:center;font-weight:600}
+
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+.scroll{overflow-x:auto}
+.diag{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.diag a{display:block;text-decoration:none;color:inherit}
+.diag a:hover .card{border-color:var(--accent)}
+@media (max-width:700px){h1{font-size:1.6rem}.bar{gap:.5rem}header.top{position:static}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <div class="brand">Offline RAG: team hub<small>blueprint v0.1, a single page for now</small></div>
+    <nav class="tabs" id="tabs">
+      <a href="#home">Home</a>
+      <a href="#start">Start here</a>
+      <a href="#learn">Learn</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#team">Team</a>
+      <a href="#rules">How we work</a>
+    </nav>
+    <button class="theme" id="bpToggle" title="Show or hide the blueprint notes">Blueprint notes: on</button>
+    <button class="theme" id="theme">Dark</button>
+  </div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section class="view" id="v-home">
+  <div class="eyebrow">Where we are</div>
+  <h1>Parts 1 and 2 are done. Parts 3 to 6 are built and wait for review.</h1>
+  <p class="lead">We are building an offline question-answering system for an organization with layers: each part of the organization answers only from its own documents, using small models on a laptop, with no internet.</p>
+  <div class="stats">
+    <div class="stat"><b>2 + 4</b><span>parts done + built, of 16</span></div>
+    <div class="stat"><b>7</b><span>nodes in the test city</span></div>
+    <div class="stat"><b>26</b><span>test questions</span></div>
+    <div class="stat"><b>0.913</b><span>answer correctness (baseline)</span></div>
+    <div class="stat"><b>328</b><span>unit tests passing</span></div>
+  </div>
+  <h2>This week</h2>
+  <div class="grid" id="weekCards"></div>
+  <div class="note warn"><b>Waiting for the supervisor:</b> the metric targets, the 18-out-of-20 judge threshold, the registry template, and the term "terminal node".</div>
+  <div class="bp"><b>Real site:</b> this page shows live task progress pulled from the Team page, and the date of the last check run.</div>
+</section>
+
+<!-- START HERE -->
+<section class="view" id="v-start">
+  <div class="eyebrow">New to the project?</div>
+  <h1>Start here (about 2 hours)</h1>
+  <p class="lead">Read these in order. You do not need to understand everything. Write down your questions and bring them to the weekly meeting.</p>
+  <ol class="steps">
+    <li><b>The big idea (15 min).</b> Open the <a href="#learn">Learn</a> tab and read "The idea in one minute".</li>
+    <li><b>The four diagrams (20 min).</b> The test city, a question's journey, how we measure, and the roadmap. Links are on the Learn tab.</li>
+    <li><b>The full explainer (40 min).</b> <code>docs/project_explained.html</code>: click through every section.</li>
+    <li><b>The words (15 min).</b> <code>glossary/glossary.md</code>. We use one word for one idea, so say "node", not "unit" or "branch".</li>
+    <li><b>Your task (30 min).</b> Open the <a href="#team">Team</a> tab, find your card, and read the files it lists.</li>
+  </ol>
+  <div class="bp"><b>Real site:</b> each step gets a "Done" button, so the lead can see who finished onboarding.</div>
+</section>
+
+<!-- LEARN -->
+<section class="view" id="v-learn">
+  <div class="eyebrow">Learn</div>
+  <h1>The project in plain words</h1>
+  <h2>The idea in one minute</h2>
+  <div class="grid">
+    <div class="card"><h3>The problem</h3><p>A city has departments, agencies and projects. Each one keeps its own documents. People ask questions, and the answer must come from the right documents, with a source.</p></div>
+    <div class="card"><h3>The rule</h3><p>A node answers <b>only from its own documents</b> (hard rule H01). The Transit Agency never answers from the Water Utility's files.</p></div>
+    <div class="card"><h3>The method</h3><p>RAG: find the 3 most relevant pieces of text, give them to a small language model, and ask it to answer with citations, or to say "insufficient knowledge".</p></div>
+    <div class="card"><h3>The limit</h3><p>Everything runs offline on a laptop with a 4 GB graphics card. So only small models fit, and we measure how good they are.</p></div>
+  </div>
+  <h2>The diagrams</h2>
+  <p class="small">Open in draw.io (free): app.diagrams.net → File → Open from → Device. Or open <code>diagrams/view_in_browser.html</code>.</p>
+  <div class="diag">
+    <a href="../diagrams/01_city_tree.drawio"><div class="card"><span class="tag acc">1</span><h3>The test city</h3><p class="small">7 nodes in 4 layers, the terminal nodes, and the planted traps.</p></div></a>
+    <a href="../diagrams/02_question_journey.drawio"><div class="card"><span class="tag acc">2</span><h3>A question's journey</h3><p class="small">From the question to the chunks, the model, the answer and the grade.</p></div></a>
+    <a href="../diagrams/03_how_we_measure.drawio"><div class="card"><span class="tag acc">3</span><h3>How we measure</h3><p class="small">Answer key → key facts → grading rules → metrics → baseline → targets.</p></div></a>
+    <a href="../diagrams/04_roadmap_and_team.drawio"><div class="card"><span class="tag acc">4</span><h3>Roadmap and team</h3><p class="small">The 16 parts and who does what.</p></div></a>
+  </div>
+  <h2>Five words to know first</h2>
+  <div class="scroll"><table>
+    <tr><th>Word</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td>Node</td><td>One part of the organization</td><td>N4 Transit Agency</td></tr>
+    <tr><td>Terminal node</td><td>A node we treat as a black box: one summary document, no children</td><td>N3 Housing Dept</td></tr>
+    <tr><td>Chunk</td><td>A piece of a document, here 80 words with 15 words of overlap</td><td>A part of D10</td></tr>
+    <tr><td>Embedding</td><td>A list of numbers that stands for the meaning of a text</td><td>Made by qwen3-embedding-0.6b</td></tr>
+    <tr><td>Baseline</td><td>The first measured value, before any tuning</td><td>Answer correctness 0.913</td></tr>
+  </table></div>
+  <div class="bp"><b>Real site:</b> the diagrams appear right here, zoomable. The glossary is searchable, built from <code>glossary/glossary.csv</code>.</div>
+</section>
+
+<!-- ROADMAP -->
+<section class="view" id="v-roadmap">
+  <div class="eyebrow">Roadmap</div>
+  <h1>The 16 parts</h1>
+  <p class="lead">Click a part to open its full explanation. Names, tasks and deliverables come from the project proposal (section 21). The "In plain words" text and the book chapters are our own summary.</p>
+  <div class="legend"><span class="tag good">done</span><span class="tag acc">next</span><span class="tag">later</span> · Book = "AI Engineering" by Chip Huyen</div>
+  <div class="parts" id="parts"></div>
+  <div class="bp"><b>Real site:</b> each part gets its own page with links to the files it produced, and the status updates from the Team page.</div>
+</section>
+
+<!-- TEAM -->
+<section class="view" id="v-team">
+  <div class="eyebrow">Team</div>
+  <h1>Who does what</h1>
+  <p class="lead">Each person has one task: useful now, doable alone, and teaching one part of the project. Tick the steps as you go. A task is finished only when its "done when" line is true.</p>
+  <div class="grid" id="people"></div>
+  <p class="small">Ticks are saved only in your own browser for now.</p>
+  <div class="bp"><b>Real site:</b> a sign-in, so each person sees their own card first. The ticks are saved on the server, so everyone sees the same progress. Each card gets a place to upload the finished files.</div>
+</section>
+
+<!-- RULES -->
+<section class="view" id="v-rules">
+  <div class="eyebrow">How we work</div>
+  <h1>Four rules that keep the project safe</h1>
+  <div class="grid">
+    <div class="card"><h3>1. Your own folder</h3><p>Write only in <code>team/&lt;your name&gt;/</code>. The lead copies finished work into the project.</p></div>
+    <div class="card"><h3>2. Checks after every change</h3><p>The lead runs <code>tools/run_checks.py</code> and the unit tests after copying work in. If something fails, it goes back to its author with the error.</p></div>
+    <div class="card"><h3>3. One word, one meaning</h3><p>Use the glossary words. A new word goes into the glossary first.</p></div>
+    <div class="card"><h3>4. Never invent a fact</h3><p>No made-up numbers, papers or product facts. Every claim about a tool has a link to its documentation.</p></div>
+  </div>
+  <h2>The weekly meeting (30 min)</h2>
+  <ul>
+    <li>Each person: what I finished, what I am stuck on (3 minutes each).</li>
+    <li>The lead: what changed in the project this week.</li>
+    <li>Pick next week's steps.</li>
+  </ul>
+  <div class="bp"><b>Real site:</b> a meeting notes page, one entry per week. Later the project moves to git, and "your own folder" becomes "your own branch".</div>
+</section>
+
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+
+/* ---------- roadmap data: names, tasks and deliverables from the proposal, section 21 ---------- */
+const PARTS = [
+ {n:1, name:"Project start and domain discovery", status:"done", who:"Lead",
+  plain:"Understand the organization before writing code: agree on the words, collect sample documents, find the layers and nodes, and decide how to measure success.",
+  tasks:["Define the goals and the scope of the study","Create a shared DDD vocabulary","Collect the first sample documents","Find the first layers and nodes of the organization","Define the first evaluation metrics with the supervisor","Decide the unit-testing method"],
+  out:["Domain discovery report","First glossary","First node and layer registry template","Baseline of the evaluation metrics"],
+  book:"Ch. 3 and 4 (evaluation)",
+  have:"<code>docs/domain_discovery_report.md</code>, <code>glossary/</code>, <code>registry/</code>, <code>metrics/</code>, <code>case_study/</code>"},
+ {n:2, name:"Offline models and the technical baseline", status:"done", who:"Lead",
+  plain:"Find small models that fit the laptop, run them locally, try the prompts, and measure where they fail.",
+  tasks:["Review small offline candidate models for embedding, LLM and LVM","Set up how to run the models locally","Run sample prompt experiments","Find the performance limits of the offline models","Define the structure of the model registry"],
+  out:["Offline model baseline report","How to use the models","Prompt test plan"],
+  book:"Ch. 2 (foundation models), 4, 5 (prompts)",
+  have:"<code>docs/baseline_report.md</code>, <code>docs/how_to_use_the_models.md</code>, <code>docs/prompt_test_plan.md</code>, <code>models/</code>, <code>prompts/</code>",
+  open:"Still open: the rerun with qwen3:4b-instruct, the Wi-Fi-off run, recording ollama ps (Teammate B), and unseen questions (Teammate A)."},
+ {n:3, name:"DDD architecture and the core domain model", status:"next", who:"Lead (built, in review)",
+  plain:"Draw the map of the code before building it: which parts exist, which object owns which rule, and how storage is hidden behind interfaces so it can be swapped and tested.",
+  tasks:["Define the bounded contexts","Define the aggregates, entities, value objects, repositories and domain services","Define the boundary of the application services","Prepare the unit-test structure","Define the storage abstractions"],
+  out:["DDD architecture document","Domain model specification","First unit-test plan"],
+  book:"Not in the book (domain-driven design). Ch. 10 for the overall AI system architecture.",
+  key:"The key decision: which object owns which rule. Answer: KnowledgeItem owns H03 and H04, Hierarchy owns H02 and H10 (no children), and the ingestion use case checks H10's one-document half.",
+  have:"<code>architecture/architecture.md</code>, <code>architecture/domain_model.md</code>, <code>architecture/unit_test_plan.md</code>, code in <code>rag_core/</code>",
+  open:"Waiting: the supervisor's view on the decisions marked 'to confirm' (architecture.md, section 10)."},
+ {n:4, name:"Document ingestion foundation", status:"next", who:"Lead (built), Teammate C tests on real files",
+  plain:"Get documents into the system: register DOC, DOCX and PDF files, pull the text out, record where each piece came from, and cut the text into chunks.",
+  tasks:["Build the registration flow for DOC, DOCX and PDF","Build the text extraction adapters","Record the knowledge metadata","Define the source citation model","Build the first chunking rules"],
+  out:["Knowledge ingestion prototype","Metadata schema","Chunking specification"],
+  book:"Ch. 6 (RAG: chunking)",
+  key:"Old binary DOC files are the hardest to read. D19 must become an image-only PDF, so the vision model is tested.",
+  have:"<code>architecture/ingestion.md</code>, <code>architecture/metadata_schema.md</code>, <code>architecture/chunking_spec.md</code>, <code>architecture/citation_model.md</code>; the city ingested in <code>results/ingestion/phase4-words80/</code>",
+  open:"Waiting: pypdf, pypdfium2 and LibreOffice on Teammate C's laptop (they are installed on yours), real Word files, and the image-only D19 PDF."},
+ {n:5, name:"Knowledge versioning, chunking and duplicate detection", status:"next", who:"Lead (built, in review)",
+  plain:"Keep every version of a document, know which one is active, and notice when two documents are the same or nearly the same.",
+  tasks:["Build knowledge version control","Build the life cycle of a knowledge chunk","Build exact duplicate detection","Build near-duplicate and overlap detection","Unit-test the version and chunking behaviour"],
+  out:["Knowledge life cycle module","Duplicate and overlap detection module","Unit-test coverage for the knowledge rules"],
+  book:"Ch. 8 (deduplication), Ch. 6",
+  key:"Near duplicates and overlaps are advice for a person: the system never merges or deletes. A chunk is retrievable only when it is indexed and its version is the active one.",
+  have:"<code>architecture/versioning_and_duplicates.md</code>, code in <code>rag_core/knowledge/</code> (<code>changes.py</code>, <code>lifecycle.py</code>, <code>duplicates.py</code>), <code>python -m rag_core find-duplicates</code>, <code>scripts/duplicate_experiment.py</code>",
+  open:"Waiting: the supervisor's view of decisions A11 to A15, more planted near-duplicate pairs for metrics M10 and M11, and the limits measured on real files."},
+ {n:6, name:"Node, layer and organizational hierarchy module", status:"next", who:"Lead (built, in review)",
+  plain:"Turn the organization chart into code: nodes, layers, parents and children, the terminal-node boundary, and what each layer must send upward.",
+  tasks:["Build node definition","Build the layer registry","Build parent and child relations","Build the terminal-node boundary","Build the transfer requirements of each layer"],
+  out:["Organizational hierarchy module","Workflows for layer membership and node definition","Unit tests for the hierarchy rules"],
+  book:"Not in the book (domain modelling)",
+  key:"A layer's transfer rule belongs to the layer that receives the package. A node's layer is never chosen: it follows from its parent. Moving a node moves its whole subtree.",
+  have:"<code>architecture/hierarchy_and_layers.md</code>, <code>registry/layer_registry.csv</code>, code in <code>rag_core/organization/</code> and <code>rag_core/workflows/</code>, commands <code>show-hierarchy</code>, <code>define-node</code>, <code>move-node</code>, <code>set-terminal</code>",
+  open:"Waiting: the supervisor's view of decisions A16 to A20, and the values for the rule fields the proposal leaves open (excluded topics, required fields, output format, maximum length, citation level)."},
+ {n:7, name:"Issue and sub-issue modelling", status:"later", who:"",
+  plain:"Record problems (issues), compare a new one with old ones, split a big issue into smaller sub-issues, and track each issue's status.",
+  tasks:["Build issue creation with metadata","Build comparison of an issue with existing issues","Build the sub-issue generation workflow","Build the relative position of issues","Build the issue status categories"],
+  out:["Issue management module","Sub-issue model","Issue comparison logic"],
+  book:"Ch. 5 (prompts for structured output)"},
+ {n:8, name:"RAG retrieval core and question answering", status:"later", who:"",
+  plain:"The real version of what Part 2 tested: embeddings, a vector index, retrieval filtered by node, building the context, and answers limited to one node.",
+  tasks:["Connect the embedding model","Build the vector index and retrieval","Build retrieval filtered by metadata","Build RAG context assembly","Build question answering limited to a node"],
+  out:["Offline RAG core","Question-answering workflow","Unit tests for retrieval and prompt assembly"],
+  book:"Ch. 6 (RAG)"},
+ {n:9, name:"Executor analysis and Issue-Knowledge-Executor relations", status:"later", who:"",
+  plain:"Model the people and teams who can solve issues (executors) and their skills, then link issues, knowledge and executors so the system can suggest who fits an issue.",
+  tasks:["Build the executor profile model","Build the expertise metadata","Build issue and knowledge comparison","Build executor matching logic","Build the Issue-Knowledge-Executor relation model"],
+  out:["Executor management module","IKE relation module","Relation summary generation"],
+  book:"Ch. 6 (retrieval for matching)"},
+ {n:10, name:"LLM as a judge and quality control", status:"later", who:"",
+  plain:"A model scores important outputs against a rubric. Low scores are blocked. The first pass mark is 18 out of 20.",
+  tasks:["Build the judge rubric model","Build the judging prompt templates","Build the score parser","Build threshold handling","Set the first pass mark of 18 out of 20 for important outputs"],
+  out:["Judge scoring module","Scoring framework","Unit tests for scores and thresholds"],
+  book:"Ch. 3 (AI as a judge)",
+  key:"Part 2 already tried two small judges on easy cases (judge_probe.csv). Judges are biased, so they are checked against humans (M18 to M20)."},
+ {n:11, name:"Cyclic node processing and upward transfer", status:"later", who:"",
+  plain:"On a schedule, each node packs what it learned into a transfer package for its parent, at the right level of detail. The latest packages are saved to CSV and a database.",
+  tasks:["Build the cyclic processing workflow","Build transfer package generation","Build detail-level adjustment","Build AI suggestions to improve a transfer","Build CSV and database storage for the latest packages"],
+  out:["Node processing module","Transfer package module","CSV output","Latest-version delivery workflow"],
+  book:"Ch. 4 (evaluating the packages), Ch. 10"},
+ {n:12, name:"Project, research, achievement and gap tracking", status:"later", who:"",
+  plain:"Record projects with their research, achievements, challenges and unsolved problems, link them to knowledge, issues and executors, and find research gaps and key issues.",
+  tasks:["Build the project record model","Build the structure for research, achievements, challenges and unsolved issues","Link project records to knowledge, issues and executors","Build the research gap detection rules","Build key-issue prioritization"],
+  out:["Project knowledge module","Research gap module","Key-issue prioritization module"],
+  book:"Ch. 6"},
+ {n:13, name:"RFP generation and proposal management", status:"later", who:"",
+  plain:"From an unsolved issue, draft an RFP (a request for proposals). Register the RFP responses that come back, score them with a rubric, and write feedback automatically.",
+  tasks:["Build RFP generation from an issue and its knowledge","Build registration of RFP responses","Build the evaluation rubric for RFP responses","Build automatic feedback generation","Link RFP and response outputs to the node's knowledge"],
+  out:["RFP generation module","RFP response evaluation module","Feedback generation module"],
+  book:"Ch. 5 (prompts), Ch. 3 (rubrics)"},
+ {n:14, name:"Prompt testing, model tuning and sample set evaluation", status:"later", who:"",
+  plain:"Tune everything with evidence: test the prompts on sample scenarios, adjust retrieval settings, compare models per task, and fix the rubrics.",
+  tasks:["Test the prompts against sample scenarios","Tune the retrieval parameters","Compare the chosen local models for each kind of task","Improve the judge rubrics","Improve the transfer detail-level rules"],
+  out:["Model and prompt evaluation report","Tuned prompt set","Updated evaluation metrics"],
+  book:"Ch. 4, 5, 7 (finetuning, for comparison)",
+  key:"Here \"tuning\" means settings and prompts, not training the model."},
+ {n:15, name:"Completing unit tests and technical hardening", status:"later", who:"",
+  plain:"Close the gaps: finish the unit tests of the main modules, fix domain-logic bugs, and check the fixed-rule workflows and the CSV and database outputs.",
+  tasks:["Finish the unit tests of the main modules","Fix defects in the domain logic","Validate the deterministic workflows","Validate the CSV and database workflows for the latest package","Check the coverage of the evaluation metrics"],
+  out:["Unit test report","Final test version of the software core","Final checklist"],
+  book:"Ch. 9 (inference optimization), Ch. 4"},
+ {n:16, name:"Final wrap-up, documentation and presentation", status:"later", who:"Everyone",
+  plain:"Finish the documents and the user guide, show sample workflows, collect the evaluation evidence, and present the project.",
+  tasks:["Prepare the final technical documents","Prepare the user and operator guide for the main workflows","Demonstrate sample workflows","Summarize the evaluation evidence","Present and demonstrate the project"],
+  out:["Final version of the software core","Project summary report","Evaluation evidence set","Project documents","Training material"],
+  book:"Ch. 10"}
+];
+
+/* ---------- team data ---------- */
+const PEOPLE = [
+ {id:"lead", cls:"", role:"Lead", name:"You", focus:"Review Parts 3 to 6, then Part 7",
+  why:"Parts 3 to 6 are built. You must be able to defend every decision before Part 7 builds on them.",
+  read:["architecture/architecture.md","architecture/domain_model.md","study_notes/08_architecture_and_ingestion.md","architecture/versioning_and_duplicates.md","study_notes/09_versions_and_duplicates.md","architecture/hierarchy_and_layers.md","study_notes/10_nodes_layers_and_rules.md"],
+  steps:["Read the design and explain section 10 of architecture.md in your own words","Run the tests and the ingestion yourself","Try a real PDF and a Word file with ingest-file","Take the 'to confirm' decisions to the supervisor","Merge the teammates' work and run the checks","Plan Part 7: issues and sub-issues"],
+  done:"The supervisor has seen the design, and every 'to confirm' decision has an answer."},
+ {id:"a", cls:"a", role:"Teammate A", name:"Questions", focus:"10 unseen questions",
+  why:"The 26 questions were used to choose the setup, so they flatter it. You never saw the prompts, so your questions are a fair test.",
+  read:["case_study/ (documents and answer_key.csv)","study_notes/01_metrics.md","metrics/key_facts.csv","Do NOT read prompts/"],
+  steps:["Read the documents of two or three nodes","Write 10 questions in team/A/unseen_questions.csv, same columns as the answer key","Cover each type: a plain fact, a version, a conflict, a terminal node, an unanswerable one","Write the key facts for each question","Ask a teammate to find each answer in the documents"],
+  done:"Each question names its node, its sources and its key facts, and a second person found every answer."},
+ {id:"b", cls:"b", role:"Teammate B", name:"Model runs", focus:"The open runs from Part 2",
+  why:"Three runs are still open, and a second laptop shows whether the operator guide really works.",
+  read:["docs/operator_guide.md","docs/how_to_use_the_models.md","study_notes/06_running_and_limits.md"],
+  steps:["Set up Ollama with the operator guide and write down your hardware","Pull qwen3:4b-instruct","Rerun E2, E3, E5 and E6","Run one experiment with Wi-Fi off","Rerun E6 with $env:OLLAMA_EXE set, so ollama ps is recorded","Write team/B/notes.md: every step where the guide was unclear"],
+  done:"The result folders are in team/B/results/, and notes.md lists the unclear steps."},
+ {id:"c", cls:"c", role:"Teammate C", name:"Ingestion", focus:"Test ingestion on real files",
+  why:"The prototype was tested only on files our own code made. Files saved by Word or LibreOffice are messier.",
+  read:["architecture/ingestion.md","architecture/metadata_schema.md","study_notes/08_architecture_and_ingestion.md"],
+  steps:["Save five documents as DOCX and PDF, two as DOC, in team/C/files/","Make the image-only D19 PDF","Install pypdf, pypdfium2 and LibreOffice","Ingest each format into its own run","Compare the extracted text with the Markdown","Compare pypdf with one other PDF library, with sources"],
+  done:"team/C/ingestion_test.md has one row per file: format, outcome, and what was lost."}
+];
+
+/* ---------- storage, safe in private windows ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- roadmap ---------- */
+let openPart = null;
+const tagFor = s => s === "done" ? '<span class="tag good">done</span>' : s === "next" ? '<span class="tag acc">next</span>' : '<span class="tag">later</span>';
+const list = a => "<ul>" + a.map(x => `<li>${x}</li>`).join("") + "</ul>";
+function renderParts(){
+  const cols = Math.max(1, Math.floor($("#parts").clientWidth / 240));
+  let html = "";
+  PARTS.forEach((p, i) => {
+    html += `<button class="part ${p.status} ${openPart === p.n ? "open" : ""}" data-n="${p.n}" aria-expanded="${openPart === p.n}">
+      <span class="tag ${p.status === "done" ? "good" : p.status === "next" ? "acc" : ""}">Part ${p.n}${p.status !== "later" ? " · " + p.status : ""}</span>
+      <b>${p.name}</b>${p.who ? `<span class="who">${p.who}</span>` : ""}</button>`;
+    const rowEnd = (i + 1) % cols === 0 || i === PARTS.length - 1;
+    const rowStart = i - (i % cols);
+    const openIdx = PARTS.findIndex(x => x.n === openPart);
+    if (rowEnd && openIdx >= rowStart && openIdx <= i) html += detail(PARTS[openIdx]);
+  });
+  $("#parts").innerHTML = html;
+  document.querySelectorAll(".part").forEach(b => b.onclick = () => {
+    const n = +b.dataset.n;
+    openPart = openPart === n ? null : n;
+    renderParts();
+    if (openPart) document.querySelector(".detail").scrollIntoView({behavior:"smooth", block:"nearest"});
+  });
+  const c = document.querySelector(".detail .close");
+  if (c) c.onclick = () => { openPart = null; renderParts(); };
+}
+function detail(p){
+  return `<div class="detail" role="region" aria-label="Part ${p.n}">
+    <div class="head"><div>${tagFor(p.status)} <span class="small">Part ${p.n} of 16</span><h2 style="margin:.4rem 0">${p.name}</h2></div>
+    <button class="close" aria-label="Close">Close</button></div>
+    <p class="lead"><b>In plain words:</b> ${p.plain}</p>
+    <div class="cols">
+      <div><h3>What the proposal asks</h3>${list(p.tasks)}</div>
+      <div><h3>What it delivers</h3>${list(p.out)}
+        <h3>Read in the book</h3><p>${p.book}</p>
+        ${p.who ? `<h3>Who</h3><p>${p.who}</p>` : ""}</div>
+    </div>
+    ${p.have ? `<div class="note"><b>What we already have:</b> ${p.have}</div>` : ""}
+    ${p.open ? `<div class="note warn">${p.open}</div>` : ""}
+    ${p.key ? `<div class="note warn">${p.key}</div>` : ""}
+  </div>`;
+}
+
+/* ---------- team ---------- */
+function renderPeople(){
+  const ticks = store.get("hub-ticks", {});
+  $("#people").innerHTML = PEOPLE.map(p => `
+    <div class="card person ${p.cls}">
+      <span class="tag ${p.cls === "a" ? "warn" : p.cls === "b" ? "purple" : p.cls === "c" ? "good" : "acc"}">${p.role}</span>
+      <h3>${p.name}: ${p.focus}</h3>
+      <p class="small">${p.why}</p>
+      <h3>Read first</h3>${list(p.read.map(r => r.startsWith("Do NOT") ? `<b>${r}</b>` : `<code>${r.split(" (")[0]}</code>${r.includes(" (") ? " (" + r.split(" (")[1] : ""}`))}
+      <h3>Steps</h3>
+      ${p.steps.map((s, i) => `<label class="check"><input type="checkbox" data-k="${p.id}-${i}" ${ticks[p.id + "-" + i] ? "checked" : ""}> <span>${s}</span></label>`).join("")}
+      <div class="progress"><i id="pr-${p.id}"></i></div><span class="small" id="pt-${p.id}"></span>
+      <div class="done-when"><b>Done when:</b> ${p.done}</div>
+    </div>`).join("");
+  document.querySelectorAll(".check input").forEach(cb => cb.onchange = () => {
+    const t = store.get("hub-ticks", {}); t[cb.dataset.k] = cb.checked; store.set("hub-ticks", t); progress();
+  });
+  progress();
+}
+function progress(){
+  const t = store.get("hub-ticks", {});
+  PEOPLE.forEach(p => {
+    const d = p.steps.filter((_, i) => t[p.id + "-" + i]).length;
+    $("#pr-" + p.id).style.width = (100 * d / p.steps.length) + "%";
+    $("#pt-" + p.id).textContent = `${d} of ${p.steps.length} steps`;
+  });
+  $("#weekCards").innerHTML = PEOPLE.map(p => {
+    const d = p.steps.filter((_, i) => t[p.id + "-" + i]).length;
+    return `<div class="card"><span class="small">${p.role}</span><h3 style="margin:.2rem 0">${p.focus}</h3>
+      <div class="progress"><i style="width:${100 * d / p.steps.length}%"></i></div><span class="small">${d} of ${p.steps.length} steps</span></div>`;
+  }).join("");
+}
+
+/* ---------- routing, theme, blueprint toggle ---------- */
+function route(){
+  const id = (location.hash || "#home").slice(1);
+  const v = $("#v-" + id) ? id : "home";
+  document.querySelectorAll(".view").forEach(s => s.classList.toggle("on", s.id === "v-" + v));
+  document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + v));
+  if (v === "roadmap") renderParts();
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+addEventListener("resize", () => { if (location.hash === "#roadmap" && openPart) renderParts(); });
+
+const root = document.documentElement;
+function setTheme(t){ root.dataset.theme = t; $("#theme").textContent = t === "dark" ? "Light" : "Dark"; store.set("hub-theme", t); }
+setTheme(store.get("hub-theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+$("#theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+
+function setBp(on){ document.body.classList.toggle("hide-bp", !on); $("#bpToggle").textContent = "Blueprint notes: " + (on ? "on" : "off"); store.set("hub-bp", on); }
+setBp(store.get("hub-bp", true));
+$("#bpToggle").onclick = () => setBp(document.body.classList.contains("hide-bp"));
+
+renderPeople();
+route();
+</script>
+</body>
+</html>

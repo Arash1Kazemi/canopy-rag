@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG in Depth</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <b>AI Engineering Guides</b>
+  <a href="index.html">Home</a>
+  <a href="senior-path.html">Senior path</a>
+  <a class="on" href="rag.html">RAG</a>
+  <a href="evals.html">Evals</a>
+  <a href="local-models.html">Local models</a>
+  <a href="engineering.html">Engineering</a>
+</div></header>
+<main>
+<h1>RAG in depth</h1>
+<p class="lead">RAG looks simple in a diagram and fails in many quiet ways. This page lists the ways, how to catch each one, and what to try. Book chapter 6, plus chapter 8 for duplicates.</p>
+
+<h2>1. The pipeline, and where each stage breaks</h2>
+<p>Most teams tune the prompt because it is the easy knob. The failure is usually earlier. Check the stages <b>in order</b>.</p>
+<div class="wrap"><table>
+<tr><th>Stage</th><th>How it fails</th><th>How you catch it</th></tr>
+<tr><td>1. Extract text</td><td>A table becomes a pile of numbers. A scan has no text. Headers and footers repeat in every chunk.</td><td>Read the extracted text of 5 files by eye. Compare with the original.</td></tr>
+<tr><td>2. Chunk</td><td>The answer is cut in half. A number is separated from its label. A chunk has no clue which document it came from.</td><td>For each key fact, check that one chunk contains the fact and enough context to understand it.</td></tr>
+<tr><td>3. Embed and index</td><td>Wrong model for the language. Query and document treated the same when the model expects different prefixes. Old index after a document changed.</td><td>Search for a sentence copied from a chunk. It must come back first.</td></tr>
+<tr><td>4. Retrieve</td><td>The right chunk is not in the top k. Exact names, codes and numbers are missed. Chunks from the wrong node are returned.</td><td>Recall at k on a labelled set (section 2).</td></tr>
+<tr><td>5. Assemble context</td><td>Too much text. Duplicates fill the space. The key chunk is in the middle of a long prompt.</td><td>Print the exact final prompt for 10 questions and read it.</td></tr>
+<tr><td>6. Generate</td><td>The model ignores the context, mixes in its own memory, or answers when it should refuse.</td><td>Compare the answer with the retrieved text. Test unanswerable questions.</td></tr>
+<tr><td>7. Cite</td><td>The citation points to a chunk that does not support the claim.</td><td>Check that each cited chunk contains the claimed fact (section 9).</td></tr>
+</table></div>
+<div class="box senior"><b class="t">Senior habit</b>
+  When an answer is wrong, the first question is always "was the right chunk in the retrieved set?" If no, it is a retrieval problem and a better prompt will not help. If yes, it is a context or generation problem. This one question halves your debugging time.</div>
+
+<h2>2. Measure retrieval on its own</h2>
+<p>Evaluate retrieval <b>without</b> the language model. It is faster, cheaper, and it has no randomness. You need, for each question, the list of chunks that contain the answer (the "relevant" chunks).</p>
+<div class="wrap"><table>
+<tr><th>Metric</th><th>In words</th><th>Use it when</th></tr>
+<tr><td>Hit rate at k</td><td>Did at least one relevant chunk appear in the top k? Yes or no, averaged.</td><td>One chunk is enough to answer.</td></tr>
+<tr><td>Recall at k</td><td>Of all the relevant chunks, what share appears in the top k?</td><td>The answer needs several chunks.</td></tr>
+<tr><td>Precision at k</td><td>Of the k chunks returned, what share is relevant? Low precision means noise in the prompt.</td><td>The prompt budget is small (your case).</td></tr>
+<tr><td>MRR</td><td>Look at where the first relevant chunk is. Rank 1 scores 1, rank 2 scores 1/2, rank 4 scores 1/4. Average over questions.</td><td>You care about the first good result, for example with a reranker.</td></tr>
+<tr><td>nDCG</td><td>Rewards putting relevant chunks higher in the list, and can handle "very relevant" versus "slightly relevant".</td><td>You have graded relevance labels. Skip it until you do.</td></tr>
+</table></div>
+<pre><code>def recall_at_k(retrieved, relevant, k):
+    """Share of the relevant chunks that appear in the first k results."""
+    if not relevant:
+        return None   # unanswerable question: nothing to retrieve, score it separately
+    return len(set(retrieved[:k]) &amp; set(relevant)) / len(relevant)
+
+def reciprocal_rank(retrieved, relevant):
+    for rank, chunk_id in enumerate(retrieved, start=1):
+        if chunk_id in relevant:
+            return 1 / rank
+    return 0.0</code></pre>
+<div class="box try"><b class="t">Try it here</b>
+  Make a table: one row per question of the answer key, with the chunk ids that hold the key fact (your chunk ids look like <code>item@version#order</code>). Do it for <code>words80</code> and again for <code>sections80</code>. Then your E3 comparison is not "which one feels better" but "recall at 3 changed from X to Y, on 26 questions, with this error bar". Keep the table in <code>metrics/</code> or <code>results/</code>, never inside a case-study document (rule 4 of CLAUDE.md).</div>
+<div class="box warn"><b class="t">Careful</b>
+  Label the relevant chunks <b>before</b> you look at what the retriever returns. If you label after, you will unconsciously mark whatever it returned as relevant.</div>
+
+<h2>3. Chunking</h2>
+<p>A chunk is the unit that is embedded, retrieved, cited and put into the prompt. One size has to serve all four jobs, which is why chunking is a compromise.</p>
+<div class="wrap"><table>
+<tr><th>Choice</th><th>Small chunks</th><th>Large chunks</th></tr>
+<tr><td>Retrieval precision</td><td>Higher: a chunk is about one thing.</td><td>Lower: a chunk mixes topics, so its embedding is a blur.</td></tr>
+<tr><td>Context for the model</td><td>Lower: may miss the label or the date.</td><td>Higher.</td></tr>
+<tr><td>Prompt budget</td><td>Cheap per chunk.</td><td>Expensive. Few fit in a small context.</td></tr>
+<tr><td>Citation</td><td>Exact.</td><td>Vague.</td></tr>
+</table></div>
+<h3>Common strategies (try them as experiments, in this order)</h3>
+<ol>
+  <li><b>Fixed window with overlap</b> (your <code>words80</code>). Simple, predictable, ignores structure. Overlap is insurance against cutting a fact in half; it costs storage and creates near-duplicate hits.</li>
+  <li><b>Structure-aware</b> (your <code>sections80</code>). Split at headings and pages. Keeps a section's meaning together. Needs good extraction of headings, which is why DOCX and PDF matter.</li>
+  <li><b>Add context to every chunk.</b> Prepend the document title and heading path to the text that is embedded. Cheap and often helpful. Anthropic's "Contextual Retrieval" post describes a more advanced version that uses a model to write the context.</li>
+  <li><b>Small to retrieve, larger to read.</b> Search over small chunks, then give the model the whole section they came from. Your heading-path metadata makes this possible.</li>
+  <li><b>Semantic chunking</b> (split where the meaning changes, using embeddings). More complex and slower. Try only if the earlier ones plateau.</li>
+</ol>
+<div class="box senior"><b class="t">Senior habit</b>
+  Chunking is a hyperparameter of the whole system. Never judge it by eye. Change it, rebuild the index, and re-run the same retrieval table. Keep the old index so you can compare.</div>
+
+<h2>4. Embeddings, in words</h2>
+<p>An embedding model turns a text into a list of numbers, a point in space. Texts with similar meaning land near each other. <b>Cosine similarity</b> measures how much two arrows point the same direction, and it ignores their length. Search means "find the stored points nearest to the question's point".</p>
+<ul>
+  <li><b>Query and document are different.</b> Some embedding models expect a special prefix or instruction on the query. Read the model card. Forgetting this silently lowers quality.</li>
+  <li><b>Language and domain matter.</b> A leaderboard score is an average over many tasks. Your documents are not that average.</li>
+  <li><b>Dimension and size.</b> More dimensions cost more storage and search time. With 20 documents and a few hundred chunks, the cost is irrelevant today; it matters when the system grows.</li>
+  <li><b>Changing the embedding model means re-embedding everything.</b> Store the model name and version with the index, so you know which vectors belong to which model. This is why your model registry exists.</li>
+</ul>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <ul>
+    <li><a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a>: a broad comparison of embedding models. Use it to pick candidates, then test them on your own questions. Look at the retrieval tab and the model sizes.</li>
+    <li><a href="https://arxiv.org/abs/2104.08663">BEIR</a>: the reason people test on their own data (a method strong on one dataset can be weak on another).</li>
+  </ul>
+</div>
+
+<h2>5. Hybrid search: keywords plus vectors</h2>
+<p>Vector search is good at meaning ("fleet size" matches "number of buses") and weak at exact strings ("Route 12", "D10", a part number). Keyword search (BM25) is the opposite. Using both and merging the results is a standard fix.</p>
+<ul>
+  <li><b>BM25</b> scores a chunk by how many of the query's rare words it contains, with a limit on very long chunks. It is classic and fast.</li>
+  <li><b>Reciprocal rank fusion (RRF)</b> merges two ranked lists using only the ranks, not the raw scores (which are on different scales). Each list gives a chunk the score 1 divided by (k plus its rank), and the scores add up. A common value for k is 60.</li>
+  <li><b>You already have SQLite.</b> Its FTS5 module provides full-text search and a <code>bm25()</code> function, so keyword search needs no new service. That fits an offline system very well.</li>
+</ul>
+<pre><code>def rrf(rankings, k=60):
+    """Merge ranked lists of chunk ids. rankings = [vector_ids, keyword_ids]."""
+    scores = {}
+    for ranking in rankings:
+        for rank, chunk_id in enumerate(ranking, start=1):
+            scores[chunk_id] = scores.get(chunk_id, 0) + 1 / (k + rank)
+    return sorted(scores, key=scores.get, reverse=True)</code></pre>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <a href="https://www.sqlite.org/fts5.html">SQLite FTS5 documentation</a>. Read the sections on creating a table and on the <code>bm25()</code> auxiliary function. I tested your virtual environment on 2026-11-05: it has SQLite 3.53.1 and FTS5 works, including <code>bm25()</code>. So keyword search can live in the same SQLite file as the rest of your data.</div>
+<div class="box try"><b class="t">Try it here</b>
+  Pick three questions whose answer is an exact value (a bus count, a route number). Check whether vector search alone puts the right chunk in the top 3. If it does not, you have a measured reason to add keyword search in Phase 8.</div>
+
+<h2>6. Reranking</h2>
+<p>The first search is fast and rough: it compares pre-computed points. A <b>reranker</b> (often a "cross-encoder") reads the question and one chunk <i>together</i> and scores how well the chunk answers the question. It is more accurate and much slower, so you apply it only to the top 20 to 50 results and keep the best few.</p>
+<ul>
+  <li>Cost: one model run per candidate chunk. On a 4 GB GPU, check the memory with the embedding and language models loaded as well.</li>
+  <li>Gain: unknown until you measure. Use the same retrieval table (MRR and recall at 3) with and without it.</li>
+  <li>A small language model can act as a reranker with a prompt, but it is usually slower and less stable than a model trained for the job.</li>
+</ul>
+
+<h2>7. Retrieval limited by the hierarchy</h2>
+<p>Your system answers "limited to one node". This is a strength: it removes a whole class of wrong answers. Do it correctly:</p>
+<ul>
+  <li><b>Filter before you rank</b> (pre-filter). If you rank first and filter after, you may discard all the top results and be left with nothing.</li>
+  <li><b>Put the scope in the chunk metadata</b> (node id, active version) and make the filter part of the repository, not of the prompt. A prompt that says "only use node N4" is a hope; a filter is a guarantee.</li>
+  <li><b>Measure leakage.</b> Count how many retrieved chunks are outside the asking node's scope. It must be zero. A test that proves it is worth more than a paragraph explaining it.</li>
+  <li><b>The other side of the trade-off:</b> a strict filter can hide a useful document in a neighbouring node. Your Q22 (the node-boundary question) is exactly this test.</li>
+</ul>
+
+<h2>8. Versions, duplicates and conflicts (book chapter 8)</h2>
+<div class="wrap"><table>
+<tr><th>Problem</th><th>Example in your data</th><th>Approach</th></tr>
+<tr><td>Exact duplicate</td><td>D12 and its copy</td><td>Compare a hash of the normalized text (done). Skip it, and record that you skipped it.</td></tr>
+<tr><td>New version</td><td>D10 v1 (120 buses) and v2 (135)</td><td>Index only the active version for answers, but keep the old one for history. Never let an old version answer a question about "now".</td></tr>
+<tr><td>Near duplicate</td><td>Two reports with 90% the same text</td><td>Compare sets of word groups (shingles, MinHash) or embedding similarity above a threshold. The threshold is a choice: measure false merges against missed duplicates.</td></tr>
+<tr><td>Conflict between documents</td><td>D11 says Route 12, D16 says Route 7</td><td>Do not pick silently. Show both claims with their citations and dates, and say they disagree. This is a feature.</td></tr>
+</table></div>
+<div class="box senior"><b class="t">Senior habit</b>
+  Deduplication is a <i>decision</i> about what the system should believe, not only a cleaning step. Log every merge and every skip with the reason, so a person can undo it.</div>
+
+<h2>9. Context assembly, citations and refusing to answer</h2>
+<ul>
+  <li><b>Budget.</b> Decide the maximum context in tokens. Small models degrade with long prompts (see Local models). Fewer, better chunks beat many mediocre ones.</li>
+  <li><b>Order.</b> Models tend to use the start and end of a long context better than the middle (the "Lost in the Middle" paper). Put the strongest chunks first.</li>
+  <li><b>Remove repeats.</b> With overlapping chunks, the same sentence may appear twice. Merge neighbouring chunks.</li>
+  <li><b>Label every chunk with its citation id</b> in the prompt, and ask the model to cite only those ids.</li>
+  <li><b>Check the citations in code.</b> A cited id must exist in the retrieved set. Better: the cited chunk must contain the key numbers or names in the answer. This is cheap, deterministic, and catches many hallucinated citations.</li>
+  <li><b>Refusing.</b> Tell the model it may answer "not found in the documents". Then test it on the unanswerable questions in your answer key. A retrieval-score threshold ("if the best score is below X, refuse") can help but is fragile; measure it before you trust it.</li>
+</ul>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <a href="https://arxiv.org/abs/2307.03172">Lost in the Middle</a> and <a href="https://docs.ragas.io/">the Ragas documentation</a> (a library of RAG metrics such as faithfulness and context precision). Read the Ragas metric definitions to learn the vocabulary. Note that many of its metrics use a language model as the judge, so the cautions on the Evals page apply.</div>
+
+<h2>10. A debugging checklist</h2>
+<ol>
+  <li>Print the question, the retrieved chunk ids with scores, and the final prompt.</li>
+  <li>Is the key fact in any chunk at all? If not, go to extraction or chunking.</li>
+  <li>Is that chunk in the top k? If not, retrieval: try keywords, a different k, a different chunk size.</li>
+  <li>Is it in the prompt, and not buried or cut off by the context limit?</li>
+  <li>Does the model's answer match the chunk? If not, generation: simplify the prompt, lower the temperature, try another model.</li>
+  <li>Is the citation correct?</li>
+  <li>Write the failure into a table with a category. After 20 failures, fix the biggest category.</li>
+</ol>
+
+<footer>Part of the AI Engineering Guides. Concepts are standard; none of the performance claims are about your data. Measure on your own questions.</footer>
+</main>
+</body>
+</html>

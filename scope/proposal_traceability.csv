@@ -1,0 +1,21 @@
+proposal_objective,summary,project_objectives
+1,"Domain-Driven Design architecture for knowledge, issues, executors and knowledge transfer",O7
+2,"Offline RAG core using small local embedding, LLM and LVM models",O1;O7
+3,"Ingest and process DOC, DOCX and PDF files",O2
+4,Define the organizational layers and the organizations and nodes in each layer,O3
+5,Let each layer define the knowledge it needs from its children,O6
+6,"Use AI to improve, shorten, expand and summarize knowledge, and to suggest the detail level for transfer upward",O6
+7,"Model completed projects, research, achievements, challenges, unsolved issues and research gaps",O5
+8,Keep very detailed knowledge in lower layers and transfer a suitable level of detail upward,O6
+9,Support an offline request from the upper layer for the latest prepared information,O6
+10,Process each node's knowledge in cycles and store the latest transferable output as CSV or in a local database,O6
+11,"Issue decomposition, sub-issues, issue comparison and the Issue-Knowledge-Executor model",O4
+12,Produce a probable answer or solution for issues from the node's knowledge,O4
+13,Determine issue status and progress percentage,O4
+14,Identify and prioritize key issues and research gaps,O5
+15,"Generate RFPs, manage proposals, evaluate proposals and generate automatic feedback",O8
+16,Support metadata with issue definition and knowledge registration,O2;O4
+17,Treat the system architecture and the Issue-Knowledge-Executor model as knowledge of each node,O4
+18,Support knowledge in any field of activity,O3
+19,"Update, version, chunk, compare and de-duplicate knowledge",O2
+20,"Define clear indicators to evaluate each main component, reviewed with the supervisor",O7

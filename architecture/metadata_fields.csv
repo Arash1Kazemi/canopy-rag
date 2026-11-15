@@ -1,0 +1,27 @@
+field,required,rule,allowed,meaning,source
+node_id,yes,text,,The node that owns the item.,proposal 7.5 (organization or node)
+title,yes,text,,The title of the item.,ingestion
+document_type,yes,one of,document;profile;project_report;research_record;achievement_record;challenge_record;issue_answer;rfp;rfp_response;feedback_report;ike_model,The kind of knowledge (proposal section 7.1).,proposal 7.5 (document type)
+field_of_activity,yes,text,,"The subject area, copied from the node unless given.",proposal 7.5 (field)
+confidentiality,yes,one of,internal;confidential,"Who may see it, copied from the node unless given.",proposal 7.5 (confidentiality level)
+language,yes,text,,"Language code, such as en.",ingestion
+source_file,yes,text,,"The file path, relative to the case-study documents folder.",proposal 7.3 (source document)
+file_format,yes,one of,md;txt;docx;doc;pdf,The DocumentFormat of the file.,proposal 7.3
+file_sha256,yes,sha256,,ContentHash of the file's bytes.,proposal 7.7 (file hash)
+text_sha256,yes,sha256,,ContentHash of the normalized extracted text.,proposal 7.7 (text normalization)
+extraction_method,yes,one of,markdown;plain_text;docx_xml;pdf_text;doc_convert;lvm_ocr,How the text was read.,proposal 7.3
+page_count,no,int,,"Pages, when the format has pages.",proposal 7.4 (page number)
+ingested_at,yes,date,,"When the version was registered, ISO 8601 in UTC.",ingestion
+change_reason,no,text,,Why this version was added.,proposal 7.6 (reason for change)
+subfield,no,text,,A narrower subject area.,proposal 7.5
+project,no,text,,The project the item belongs to.,proposal 7.5
+owner,no,text,,The author or owner.,proposal 7.5
+status,no,text,,Workflow status.,proposal 7.5
+priority,no,text,,Priority.,proposal 7.5
+tags,no,list,,"Labels, separated by ';'.",proposal 7.5
+source_reliability,no,one of,high;medium;low,How much the source can be trusted.,proposal 7.5
+related_issue,no,text,,An issue id.,proposal 7.5
+related_executor,no,text,,An executor id.,proposal 7.5
+related_rfp,no,text,,An RFP id.,proposal 7.5
+target_layer,no,int,,The layer a transfer of this item goes to.,proposal 7.5
+suggested_detail_level,no,one of,executive;managerial;technical_summary;detailed_technical,The detail level suggested for a transfer.,proposal 7.5

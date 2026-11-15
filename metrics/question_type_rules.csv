@@ -1,0 +1,11 @@
+question_type,grading_rules
+factual,GR1;GR5
+version_trap,GR1;GR5
+version_history,GR1;GR5
+terminal_node,GR1;GR5
+multi_document,GR1;GR5
+scanned_pdf,GR1;GR5
+duplicate,GR1;GR4;GR5
+contradiction,GR3;GR5
+unanswerable,GR2
+node_boundary,GR2

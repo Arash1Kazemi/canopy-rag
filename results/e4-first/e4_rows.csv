@@ -1,0 +1,47 @@
+lvm,image,prompt,facts_total,facts_found,M13,missing,wall_s,tokens_per_s,gpu_mb,ram_mb,text
+qwen3-vl-2b,d19_clean.png,P02,7,5,0.714,15 july;25 july,20.296,80.485,3762,45,"Minutes: Bus Network Project Meeting
+Date: 18 June 2025
+Attendees: Maryam Nazari (project lead), Reza Karimi (fleet manager), Ali Hosseini (data analyst), Leila Rahimi (community liaison)
+Decisions
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+Actions
+- Ali"
+qwen3-vl-2b,d19_degraded.png,P02,7,7,1.0,,10.547,81.649,3761,47,"Minutes: Bus Network Project Meeting
+Date: 18 June 2025
+Attendees: Maryam Nazari (project lead), Reza Karimi (fleet manager), Ali Hosseini (data analyst), Leila Rahimi (community liaison)
+Decisions
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+Actions
+- Ali Hosseini: compare the tap-in ridership data with the survey results, due 15 July 2025.
+- Leila Rahimi: prepare passenger announcements for the pilot, due 25 July 2025.
+Signed: M. Nazari, R. Karimi, A. Hosseini, L. Rahimi"
+glm-ocr-q8,d19_clean.png,P03,7,7,1.0,,73.47,66.113,3666,45,"Minutes: Bus Network Project Meeting
+
+Date: 18 June 2025
+Attendees: Maryam Nazari (project lead), Reza Karimi (fleet manager), Ali Hosseini (data analyst), Leila Rahimi (community liaison)
+
+Decisions
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+Actions
+- Ali Hosseini: compare the tap-in ridership data with the survey results, due 15 July 2025.
+- Leila Rahimi: prepare passenger announcements for the pilot, due 25 July 2025.
+
+Signed: M. Nazari, R. Karimi, A. Hosseini, L. Rahimi"
+glm-ocr-q8,d19_degraded.png,P03,7,7,1.0,,60.268,73.211,3627,46,"Minutes: Bus Network Project Meeting
+
+Date: 18 June 2025
+Attendees: Maryam Nazari (project lead), Reza Karimi (fleet manager), Ali Hosseini (data analyst), Leila Rahimi (community liaison)
+
+Decisions
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+Actions
+- Ali Hosseini: compare the tap-in ridership data with the survey results, due 15 July 2025.
+- Leila Rahimi: prepare passenger announcements for the pilot, due 25 July 2025.
+
+Signed: M. Nazari, R. Karimi, A. Hosseini, L. Rahimi"

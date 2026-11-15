@@ -1,0 +1,162 @@
+llm,question_id,type,asked_at_node,answer,cited,correct,refused,ttft_s,total_s,wall_s,tokens_per_s,generated_tokens,prompt_tokens,gpu_mb,ram_mb,GR1,GR2,GR3,GR4,GR5,k,ollama_ps
+qwen3-4b,Q06,contradiction,N6,"Hmm, the user is asking which route is the busiest, and I need to answer based only on the provided documents. Let me check the documents carefully.
+
+Looking at the documents section, there's one document called [D11_ridership_report_H1_2025]. It states: ""12% | ## Conclusion Route 12 is the busiest route in the network. ## Method note Counts are based on paid tap-ins only. Free-pass holders (students and seniors) are not included.""
+
+The key part here is the conclusion: ""Route 1: is the busiest route in the network."" Wait, no, it says ""Route 12"" - that's important. The document clearly states that Route 12 is the busiest route. 
+
+I should make sure I'm not confusing this with anything else. The method note mentions it's based on paid tap-ins only, but that doesn't change the conclusion about which route is busiest. 
+
+The user wants a short answer with proper citation. Since this is the only document that contains information about bus routes, I'll cite [D11_ridership_report_H1_2025] as the source. 
+
+I don't see any other documents that might contradict this,",D11_ridership_report_H1_2025;D11_ridership_report_H1_2025,False,False,5.161,13.263,13.282,31.619,256,169,3267,47,,,False,,True,1,
+qwen3-4b,Q12,scanned_pdf,N6,"Hmm, the user is asking about what the 18 June meeting decided, and I need to answer based only on the provided documents. Let me check the documents carefully.
+
+Looking at the documents, there's one document labeled [D19_meeting_minutes_2025-06-18] which contains meeting minutes from June 18, 2025. The document shows it's a Bus Network Project Meeting with specific attendees and decisions.
+
+In this document, under the ""Decisions"" section, it clearly states two things:
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+The user asked specifically about what the meeting decided, and these two points are the official decisions from that meeting. I should present them concisely with the proper citation.
+
+I need to make sure I don't add any outside knowledge - the documents don't mention anything else about decisions. The actions section is also there but the question is about decisions, so I'll focus on the Decisions section.
+
+The answer should be short as per the rules, so I'll list the two decisions clearly with",D19_meeting_minutes_2025-06-18,False,False,0.168,8.449,8.468,31.018,256,276,3266,46,False,,,,True,1,
+qwen3-4b,Q25,multi_document,N6,"First, I need to answer the question: ""Did the pilot cost more or less than estimated, and by how much?"" I must use only the documents provided, and cite the source after each fact.
+
+The documents given are: [D17_pilot_test_report]. I should check if this document contains the information.
+
+Looking at [D17_pilot_test_report]: It says: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR.""
+
+So, the actual cost was 298,000 EUR, and the estimate was 310,000 EUR.
+
+Now, the question is: Did it cost more or less than estimated? And by how much?
+
+- Estimated cost: 310,000 EUR
+
+- Actual cost: 298,00: 298,000 EUR
+
+So, actual cost is less than estimated.
+
+Difference: 310,000 - 298,000 = 12,000 EUR
+
+Therefore, it cost 12,000 EUR less than estimated.
+
+I need to cite the source. The",D17_pilot_test_report;D17_pilot_test_report,True,False,0.166,8.335,8.355,31.456,256,242,3266,46,True,,,,True,1,
+phi4-mini,Q06,contradiction,N6,Route 12 [D11_ridership_report_H1_2025],D11_ridership_report_H1_2025,False,False,6.089,6.585,6.603,34.655,17,156,3343,46,,,False,,True,1,
+phi4-mini,Q12,scanned_pdf,N6,"The 18 June meeting decided to approve the Route 7 pilot to start on 4 August 2025 for 8 weeks with a budget capped at 310,000 EUR. Additionally, Ali Hosseini was tasked to compare the tap-in ridership data with the survey results by 15 July 2025, and Leila Rahimi was assigned to prepare passenger announcements. [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,False,False,0.137,2.704,2.723,35.918,92,249,3343,46,False,,,,True,1,
+phi4-mini,Q25,multi_document,N6,"The pilot cost 298,000 EUR, which is 12,000 EUR less than the estimated cost of 310,000 EUR. [D17_pilot_test_report]",D17_pilot_test_report,True,False,0.13,1.165,1.185,36.471,37,222,3303,46,True,,,,True,1,
+qwen3-4b,Q06,contradiction,N6,"Okay, let me tackle this question step by step. The user is asking which route is the busiest, and I need to use only the provided documents to answer. 
+
+First, I'll check each document for relevant information. 
+
+Starting with [D11_ridership_report_H1_2025]: It says ""Route 12 is the busiest route in the network"" with the note that counts are based on paid tap-ins only. So this document clearly states Route 12 as the busiest based on ridership data.
+
+Next, [D16_passenger_survey_2025] shows a survey where Route 7 has the largest share (41%) as the most overcrowded route at peak hours. But this is about perceived overcrowding, not actual busyness. The document specifies this is from passengers' view.
+
+Then [D15_route_redesign_proposal] mentions that Route 7 is named as most overcrowded by passengers and has the most complaints, but it also states that the ridership report ranks Route 12 as busiest. This document references the ridership report but doesn't contradict it directly.
+
+The key distinction here is between objective ridership data (which shows Route 12 as busiest) versus",D11_ridership_report_H1_2025;D16_passenger_survey_2025;D15_route_redesign_proposal,True,False,10.565,19.062,19.093,30.145,256,395,3420,47,,,True,,False,3,
+qwen3-4b,Q12,scanned_pdf,N6,"Okay, let me tackle this question step by step. The user is asking what the June 18 meeting decided, and I need to use only the provided documents. 
+
+First, I'll check the documents. There are two documents mentioned: [D19_meeting_minutes_2025-06-18] appears twice with slight variations in text, and [D18_complaint_log_Q2_2025]. The question is about decisions from the June 18 meeting, so I should focus on D19.
+
+Looking at D19, it's the meeting minutes from June 18, 2025. The ""Decisions"" section clearly lists two items:
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+The actions section has tasks for Ali and Leila, but the question is about decisions, so I'll stick to the Decisions part. 
+
+I need to make sure I'm not adding outside knowledge. The documents don't mention anything else about the June 18 meeting decisions. The complaint log (D18)",D19_meeting_minutes_2025-06-18;D18_complaint_log_Q2_2025,False,False,0.307,9.034,9.08,29.453,256,524,3341,47,False,,,,False,3,
+qwen3-4b,Q25,multi_document,N6,"Okay, let me tackle this question step by step. The user wants to know if the pilot cost more or less than estimated, and by how much. I need to check the documents provided.
+
+First, I'll look for information about the pilot cost in the documents. 
+
+In [D17_pilot_test_report], there's a section that says: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR."" That's a direct comparison. The actual cost is 298,000 EUR, and the estimate was 310,000 EUR. So the actual cost is less than the estimate.
+
+Let me check the other documents to make sure there's no conflicting information. 
+
+[D20_cost_estimate] mentions the estimate as 310,000 EUR for the pilot, which matches the report. The permanent extension costs are listed but that's separate from the pilot cost. 
+
+[D19_meeting_minutes_2025-06-18] states the pilot budget is capped at 310,000 EUR, which again aligns with the estimate. 
+
+So the actual cost (29",D17_pilot_test_report;D20_cost_estimate;D19_meeting_minutes_2025-06-18,False,False,0.31,8.798,8.832,30.292,256,556,3281,47,False,,,,False,3,
+phi4-mini,Q06,contradiction,N6,Route 12 [D11_ridership_report_H1_2025],D11_ridership_report_H1_2025,False,False,5.924,6.387,6.406,37.383,17,368,3391,47,,,False,,True,3,
+phi4-mini,Q12,scanned_pdf,N6,"The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks. The pilot budget is capped at 310,000 EUR. Ali Hosseini is tasked with comparing the tap-in ridership data with the survey results, due 15 July 2025. Leila Rahimi is tasked with preparing passenger announcements for the pilot, due 25 July 2025. Signed: M. Nazari, R. Karimi, A. Hosseini, L. Rahimi [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,True,False,0.221,3.606,3.658,35.4,119,462,3271,47,True,,,,True,3,
+phi4-mini,Q25,multi_document,N6,"The pilot cost 298,000 EUR, which is 12,000 EUR less than the estimated cost of 310,000 EUR. [D17_pilot_test_report] [D20_cost_estimate]",D17_pilot_test_report;D20_cost_estimate,True,False,0.266,1.524,1.558,35.871,44,498,3262,47,True,,,,True,3,
+qwen3-4b,Q06,contradiction,N6,"First, I need to answer the question: ""Which route is the busiest?"" using only the documents provided. I must follow the rules: use only the information in the documents, cite the file after each fact, if the documents don't have the answer, say ""Insufficient knowledge"", and keep it short.
+
+Let me go through the documents to find information about which route is the busiest.
+
+Document [D11_ridership_report_H1_2025] says: ""Conclusion Route 12 is the busiest route in the network."" It also has a table showing Route 12 with 2.9 million trips, which is 19% of all trips. The method note says counts are based on paid tap-ins only.
+
+Another document [D16_passenger_survey_2025] has a section: ""1. Busiest route in the passengers' view"" where it says Route 7 has 41% of respondents saying it's most overcrowded, but that's about perception of overcrowding, not actual busyness. The report says ""Result: Route 7 has the largest share"" for the most overcrowded route.
+
+Document [D15_route_redesign_proposal] mentions: ""Passengers",D11_ridership_report_H1_2025;D16_passenger_survey_2025;D15_route_redesign_proposal,False,True,10.825,19.879,19.907,28.294,256,822,2993,48,,,False,,False,6,
+qwen3-4b,Q12,scanned_pdf,N6,"We are given the question: ""What did the 18 June meeting decide?""
+
+We have to look at the documents to find what the 18 June meeting (which is the meeting on 18 June 2025) decided.
+
+Looking at the documents:
+
+- [D19_meeting_minutes_2025-06-18] is the meeting minutes for that date. It says:
+  ## Decisions
+  1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+  2. The pilot budget is capped at 310,000 EUR.
+
+Also, note that the document [D19_meeting_minutes_2025-06-18] has the following text (with some repetition in the provided documents, but we take the first occurrence as the main one):
+
+  [D19_meeting_minutes_2025-06-18] # Minutes: Bus Network Project Meeting Date: 18 June 2025 Attendees: Maryam Nazari (project lead), Reza Karimi (fleet manager), Ali Hosseini (data analyst), Leila Rah",D19_meeting_minutes_2025-06-18;D19_meeting_minutes_2025-06-18;D19_meeting_minutes_2025-06-18,False,False,0.56,9.813,9.86,27.817,256,912,3106,48,False,,,,True,6,
+qwen3-4b,Q25,multi_document,N6,"Okay, let me tackle this question step by step. The user wants to know if the pilot cost more or less than estimated, and by how much. I need to check the documents provided.
+
+First, I'll look for cost-related information. The documents mention several cost estimates and actual costs. 
+
+In [D17_pilot_test_report], it says: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR."" That's a direct comparison. The actual cost is 298,000 EUR, and the estimate was 310,000 EUR. So the actual cost is less than the estimate by 310,000 - 298,000 = 12,000 EUR.
+
+I should check if there's any conflicting information in other documents. [D20_cost_estimate] shows the estimate as 310,000 EUR for the pilot. [D19_meeting_minutes_2025-06-18] mentions the pilot budget is capped at 310,000 EUR, which matches the estimate. 
+
+The report [D",D17_pilot_test_report;D20_cost_estimate;D19_meeting_minutes_2025-06-18,True,False,0.566,10.029,10.049,27.208,256,903,3322,48,True,,,,False,6,
+phi4-mini,Q06,contradiction,N6,Route 12 is the busiest route in the network [D11_ridership_report_H1_2025].,D11_ridership_report_H1_2025,False,False,6.537,7.228,7.255,35.234,24,753,3196,48,,,False,,True,6,
+phi4-mini,Q12,scanned_pdf,N6,"The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks. The pilot budget is capped at 310,000 EUR. Ali Hosseini is tasked with comparing the tap-in ridership data with the survey results, due 15 July 2025. Leila Rahimi is tasked with preparing passenger announcements for the pilot, due 25 July 2025. Signed: M. Nazari, R. Karimi, A. Hosseini, L. Rahimi. [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,True,False,0.428,4.032,4.073,33.658,120,808,3198,47,True,,,,True,6,
+phi4-mini,Q25,multi_document,N6,"The pilot cost 298,000 EUR, which is 12,000 EUR less than the estimated cost of 310,000 EUR. [D17_pilot_test_report] [D20_cost_estimate]",D17_pilot_test_report;D20_cost_estimate,True,False,0.437,1.774,1.794,34.4,44,816,3206,47,True,,,,True,6,
+qwen3-4b,Q06,contradiction,N6,"Okay, let me tackle this question step by step. The user is asking which route is the busiest, and I need to use only the provided documents to answer. 
+
+First, I'll scan through all the documents to find information about bus routes and their ridership or busyness. 
+
+Looking at [D11_ridership_report_H1_2025], it states: ""Route 12 is the busiest route in the network."" It also shows that Route 12 has 2.9 million trips (19% share) compared to Route 7 at 2.4 million (16%). This seems like a direct answer from the ridership report.
+
+But wait, there's a conflict with the passenger survey in [D16_passenger_survey_2025]. The survey says Route 7 has the largest share (41%) when asked about most overcrowded routes. However, the question is about which route is ""busiest"" in terms of actual ridership, not perceived overcrowding. 
+
+The ridership report (D11) is based on paid tap-ins, which is the official count of trips. The survey is about passenger perception. The rules say to use only the documents, so I",D11_ridership_report_H1_2025;D16_passenger_survey_2025,True,False,11.502,22.284,22.315,23.773,256,1601,3183,47,,,True,,True,12,
+qwen3-4b,Q12,scanned_pdf,N6,"Okay, let me tackle this question step by step. The user wants to know what the 18 June meeting decided, and I need to use only the provided documents. 
+
+First, I'll scan the documents for any mentions of a meeting on June 18, 2025. The documents are labeled with dates, so I'll focus on those.
+
+Looking at [D19_meeting_minutes_2025-06-18], it's titled ""Minutes: Bus Network Project Meeting"" with the date 18 June 2025. The section ""## Decisions"" lists two points:
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+That's exactly what the meeting decided. The actions section mentions tasks for Ali and Leila, but the question is about decisions, so I'll stick to the Decisions part.
+
+I should check if other documents mention the June 18 meeting. [D17_pilot_test_report] and [D16_passenger_survey_2025] don't reference the meeting date. [D",D19_meeting_minutes_2025-06-18;D17_pilot_test_report;D16_passenger_survey_2025,False,False,0.94,11.594,11.613,24.223,256,1518,3091,47,False,,,,False,12,
+qwen3-4b,Q25,multi_document,N6,"First, I need to answer the question: ""Did the pilot cost more or less than estimated, and by how much?"" I must use only the documents provided and follow the rules.
+
+Let me look for information about the pilot cost in the documents.
+
+I see that in [D17_pilot_test_report], it says: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR.""
+
+That's a direct statement. The actual cost was 298,000 EUR, and the estimate was 310,000 EUR.
+
+Also, in [D20_cost_estimate], it says: ""Total estimate"" is 310,000 EUR for the pilot.
+
+And in [D19_meeting_minutes_2025-06-18], it mentions: ""The pilot budget is capped at 310,000 EUR.""
+
+So, the estimate was 310,000 EUR, and the actual cost was 298,000 EUR.
+
+The question is: did it cost more or less than estimated, and by how much?
+
+It cost less than estimated. The",D17_pilot_test_report;D20_cost_estimate;D19_meeting_minutes_2025-06-18,False,False,1.002,11.826,11.86,23.829,256,1546,3061,47,False,,,,False,12,
+phi4-mini,Q06,contradiction,N6,Route 12 is the busiest route in the network. [D11_ridership_report_H1_2025],D11_ridership_report_H1_2025,False,False,6.568,7.419,7.457,30.434,25,1442,3032,48,,,False,,True,12,
+phi4-mini,Q12,scanned_pdf,N6,"The Route 7 pilot was approved to start on 4 August 2025 for 8 weeks, with a budget capped at 310,000 EUR. [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,False,False,0.751,2.47,2.489,28.6,47,1368,3044,48,False,,,,True,12,
+phi4-mini,Q25,multi_document,N6,"The pilot cost 298,000 EUR, which was less than the estimated cost of 310,000 EUR. The difference is 12,000 EUR less than estimated. [D17_pilot_test_report] [D20_cost_estimate]",D17_pilot_test_report;D20_cost_estimate,True,False,0.804,2.594,2.628,29.96,51,1372,3170,48,True,,,,True,12,

@@ -1,0 +1,7 @@
+person_id,name,node_id,role,expertise
+P01,Maryam Nazari,N6,"Transport planner, project lead",route planning; bus intervals
+P02,Reza Karimi,N4,Fleet manager,bus fleet; maintenance scheduling
+P03,Ali Hosseini,N6,Data analyst,ridership statistics; survey analysis
+P04,Leila Rahimi,N6,Community liaison,passenger surveys; complaints
+P05,Omid Farahani,N2,Water engineer,leak detection; network losses
+P06,Nasrin Jafari,N1,Environmental officer,air quality; emissions

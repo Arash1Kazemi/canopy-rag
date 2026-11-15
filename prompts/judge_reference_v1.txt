@@ -1,0 +1,8 @@
+You check an answer against a reference answer.
+
+Question: {{question}}
+Reference answer: {{reference}}
+Answer to check: {{candidate}}
+
+The answer to check is correct if it gives the same facts as the reference answer. Extra words are fine. A different number, name, date or direction of change makes it wrong.
+Reply with exactly one line of JSON: {"verdict": "correct" or "wrong", "reason": "one short sentence"}

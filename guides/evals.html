@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluation and Judges</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <b>AI Engineering Guides</b>
+  <a href="index.html">Home</a>
+  <a href="senior-path.html">Senior path</a>
+  <a href="rag.html">RAG</a>
+  <a class="on" href="evals.html">Evals</a>
+  <a href="local-models.html">Local models</a>
+  <a href="engineering.html">Engineering</a>
+</div></header>
+<main>
+<h1>Evaluation and judges</h1>
+<p class="lead">This is the skill that most separates a senior AI engineer from everyone else. Models change every few months; knowing whether a change helped does not. Book chapters 3 and 4.</p>
+
+<h2>1. What an eval is</h2>
+<p>An eval is a repeatable test of an AI system: the same inputs, a fixed way of scoring, and a saved result. It plays the role that unit tests play for ordinary code, but the result is a rate, not a pass or fail, and it is noisy.</p>
+<p>Use the <b>cheapest checker that works</b>, in this order:</p>
+<div class="wrap"><table>
+<tr><th>Checker</th><th>Good for</th><th>Cost and risk</th></tr>
+<tr><td>1. Exact match or pattern</td><td>"135", a route number, a document id in the citation, valid JSON.</td><td>Free, repeatable. Too strict for free text.</td></tr>
+<tr><td>2. Code on key facts</td><td>"The answer contains all the key facts and none of the forbidden ones." (Your answer key already has key facts.)</td><td>Free, repeatable. Needs good key facts.</td></tr>
+<tr><td>3. A judge model</td><td>Quality of wording, completeness, tone, faithfulness to the context.</td><td>Slow, noisy, biased. Must be checked against humans.</td></tr>
+<tr><td>4. A human</td><td>The ground truth for everything above.</td><td>Expensive. Use on a sample.</td></tr>
+</table></div>
+<div class="box senior"><b class="t">Senior habit</b>
+  Do not reach for a judge model first. Many questions with a factual answer can be scored by code. Judges are for what code cannot check, and every judge needs its own evaluation.</div>
+
+<h2>2. Your test set: size, coverage, and sealing</h2>
+<ul>
+  <li><b>Size.</b> You have 26 questions. That is a good start for a case study and a small number for a conclusion (next section).</li>
+  <li><b>Coverage.</b> Your answer key already mixes the useful kinds: easy lookups, a version question, a conflict, a node-boundary question, and unanswerable questions. Keep a count per kind. An average hides a kind that is always wrong.</li>
+  <li><b>Development set and held-out set.</b> Questions you look at while tuning are the <i>development</i> set. The 10 unseen questions (Teammate A) are your <i>held-out</i> set. Do not look at the results on them while you tune. Use them once, at the end of a phase, to see whether the improvements are real or only fitted to the 26.</li>
+  <li><b>Overfitting by hand.</b> If you keep changing the prompt until all 26 pass, you have measured how well you fitted 26 questions, not how good the system is. This happens to everyone.</li>
+  <li><b>Do not copy test questions into prompts.</b> A few-shot example that is also a test question is a leak.</li>
+</ul>
+
+<h2>3. Small test sets are noisy</h2>
+<p>One question out of 26 is <b>3.8 percentage points</b>. If you ran the system on a different set of 26 equally hard questions, the score would move by chance alone. A <b>confidence interval</b> is the range of true pass rates that are consistent with what you saw. Here is the 95% interval for a pass rate measured on 26 questions (Wilson interval, computed on 2026-11-05):</p>
+<div class="wrap"><table>
+<tr><th>Passed</th><th>Pass rate</th><th>95% interval</th></tr>
+<tr><td>10 of 26</td><td>38%</td><td>22% to 57%</td></tr>
+<tr><td>15 of 26</td><td>58%</td><td>39% to 74%</td></tr>
+<tr><td>18 of 26</td><td>69%</td><td>50% to 83%</td></tr>
+<tr><td>20 of 26</td><td>77%</td><td>58% to 89%</td></tr>
+<tr><td>23 of 26</td><td>88%</td><td>71% to 96%</td></tr>
+<tr><td>26 of 26</td><td>100%</td><td>87% to 100%</td></tr>
+</table></div>
+<p>Read the last row twice: even a perfect score on 26 questions only tells you the true rate is probably above 87%. Read the 20 of 26 row: the interval is 31 points wide. Two systems at 18 and 23 out of 26 have intervals that overlap, so on their own they do not clearly differ.</p>
+
+<h3>Comparing two systems on the same questions</h3>
+<p>Both systems answered the same 26 questions, so use that. Ignore every question both got right or both got wrong. Only the <b>questions where they differ</b> carry information. Count "A right, B wrong" and "B right, A wrong". Then ask: if the systems were really equal, how likely is a split this uneven? (This is the sign test; it is the exact version of McNemar's test.)</p>
+<div class="wrap"><table>
+<tr><th>A only right</th><th>B only right</th><th>Chance of a split this uneven if equal (p)</th><th>Enough to call it?</th></tr>
+<tr><td>4</td><td>1</td><td>0.38</td><td><span class="pill bad">no</span></td></tr>
+<tr><td>5</td><td>0</td><td>0.06</td><td><span class="pill warn">borderline</span></td></tr>
+<tr><td>6</td><td>0</td><td>0.03</td><td><span class="pill good">yes at the usual 5%</span></td></tr>
+<tr><td>7</td><td>1</td><td>0.07</td><td><span class="pill warn">borderline</span></td></tr>
+<tr><td>8</td><td>1</td><td>0.04</td><td><span class="pill good">yes at the usual 5%</span></td></tr>
+<tr><td>10</td><td>2</td><td>0.04</td><td><span class="pill good">yes at the usual 5%</span></td></tr>
+</table></div>
+<p>So on 26 questions, a new prompt that fixes 4 questions and breaks 1 is <b>not</b> evidence of an improvement. This one table will save you from many false wins. The "5%" line is a convention, not a law: the honest summary is the numbers themselves.</p>
+<pre><code>import math
+
+def wilson(k, n, z=1.96):
+    """95% interval for a pass rate k/n. Behaves well for small n."""
+    p = k / n
+    d = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / d
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return centre - half, centre + half
+
+def sign_test(a_only, b_only):
+    """Two-sided exact p-value for 'the two systems are equally good'."""
+    n, k = a_only + b_only, max(a_only, b_only)
+    tail = sum(math.comb(n, i) for i in range(k, n + 1)) / 2 ** n
+    return min(1.0, 2 * tail)</code></pre>
+<div class="box try"><b class="t">Try it here</b>
+  Take your Phase 2 results and compute the interval for every metric you reported. Add a column "interval" next to every number in <code>docs/baseline_report.md</code>. Then re-read your conclusions: which ones still hold?</div>
+
+<h3>Other sources of noise</h3>
+<ul>
+  <li><b>Sampling.</b> With temperature above 0, the same question gives different answers. Run each question several times and report the average, or fix temperature to 0 and a seed. Even then, GPU runs may not be bit-for-bit identical, so repeat a run once to measure how much it moves.</li>
+  <li><b>Prompt wording.</b> A tiny change (a space, the order of examples) can move a small model's score. Test two or three paraphrases for any prompt you depend on.</li>
+  <li><b>The judge.</b> A judge adds its own noise on top (next section).</li>
+</ul>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <a href="https://arxiv.org/abs/2411.00640">Adding Error Bars to Evals</a>. It is written for large benchmarks but the ideas (standard errors, comparing two models on the same questions, clustering) transfer. Read the introduction and the recommendations section.</div>
+
+<h2>4. Judge models (AI as a judge)</h2>
+<p>A judge is a language model that reads an answer and scores it with a rubric. It is cheap and scalable, and it is also wrong in ways that are systematic.</p>
+<h3>Known biases</h3>
+<p>The MT-Bench paper describes these for strong models; small models are usually worse, but <b>measure it, do not assume it</b>.</p>
+<div class="wrap"><table>
+<tr><th>Bias</th><th>What happens</th><th>How to test or reduce it</th></tr>
+<tr><td>Position</td><td>When comparing two answers, the judge prefers the first (or the second).</td><td>Swap the order and judge twice. Count how often the verdict flips.</td></tr>
+<tr><td>Length (verbosity)</td><td>Longer answers score higher even when they say nothing more.</td><td>Check the correlation between answer length and score. Add "length does not matter" and re-test.</td></tr>
+<tr><td>Self-preference</td><td>A model rates its own style higher.</td><td>Use a different model family as judge than the one that wrote the answer.</td></tr>
+<tr><td>Weak at facts and arithmetic</td><td>Misses a wrong number in a fluent answer.</td><td>Give the judge the key facts as a reference, and check numbers with code.</td></tr>
+</table></div>
+
+<h3>Making a judge more reliable</h3>
+<ul>
+  <li><b>Judge with a reference.</b> Give the key facts from your answer key. "Does the answer contain these facts?" is easier and more reliable than "is this a good answer?".</li>
+  <li><b>Prefer small scales.</b> A common practice is yes/no or a 3-point scale for each criterion, and several separate criteria, instead of one 1-to-20 number. A small model cannot tell a 17 from an 18 consistently. Test this on your own judge: run it twice on the same answers and see how often the score changes.</li>
+  <li><b>Force structure.</b> Ask for the reasoning, then the score, in a fixed JSON shape. Parse it in code and count the parse failures.</li>
+  <li><b>Calibrate against humans.</b> Label 30 to 50 outputs yourself, without seeing the judge's score. Compare. Report how often they agree, and look at the cases where they disagree.</li>
+</ul>
+<h3>Agreement in words</h3>
+<p>If 90% of answers are good, a judge that always says "good" agrees with you 90% of the time and is useless. <b>Cohen's kappa</b> corrects for this: it measures agreement <i>beyond what chance would give</i>. Zero means no better than chance; one means perfect. Always report agreement <b>per category</b> too: a judge can be good on easy lookups and bad on conflicts.</p>
+
+<div class="box warn"><b class="t">Careful: your 18 out of 20 threshold</b>
+  It is the proposal's default and a decision for your supervisor, so I am not changing it. What you can do is gather evidence for the conversation: (1) the distribution of the judge's scores on a set of answers you labelled good and bad, (2) how often the same answer gets a different score on a second run, (3) how many good answers fall below 18 and how many bad answers reach it. If the scores cluster at 17, 18 and 19, the threshold is cutting through noise.</div>
+
+<div class="box check"><b class="t">Go check this yourself</b>
+  <ul>
+    <li><a href="https://arxiv.org/abs/2306.05685">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a>: read the section on limitations and biases, and how they measured agreement with humans.</li>
+    <li><a href="https://hamel.dev/blog/posts/evals/">Hamel Husain: "Your AI product needs evals"</a>: his advice on looking at data and on validating a judge.</li>
+    <li>Book chapter 3 (the section on AI as a judge) and its limits section.</li>
+  </ul>
+</div>
+
+<h2>5. Error analysis: the highest-return hour</h2>
+<ol>
+  <li>Collect 30 to 50 failures (wrong or refused answers). Save the question, retrieved chunk ids, prompt, and answer.</li>
+  <li>Read each one. Write one line: <i>what went wrong, in your own words</i>. Do not use a fixed list yet.</li>
+  <li>Group the lines into categories (for example "right chunk not retrieved", "old version used", "number copied wrong", "should have refused", "citation does not support claim").</li>
+  <li>Count. Fix the largest category first.</li>
+  <li>Re-run, and write down how that category changed. New categories may appear; that is normal.</li>
+</ol>
+<div class="box senior"><b class="t">Senior habit</b>
+  The failure table is the most valuable document in an AI project. It tells you what to build next, and it is the thing a supervisor or a hiring manager remembers.</div>
+
+<h2>6. A regression suite you run on every change</h2>
+<ul>
+  <li><b>Fast checks on every change</b>: unit tests, the 6 validators, deterministic retrieval metrics. Seconds.</li>
+  <li><b>Slow checks on demand</b>: full model runs and judge runs. Minutes to hours. Save each with a run id, the model tags, the prompt versions, and the chunk policy. (Your <code>baseline_runner</code> already does most of this.)</li>
+  <li><b>A saved baseline file</b> to compare against. A change that lowers a number by more than its interval should block the merge, or at least trigger a look.</li>
+  <li><b>Pin the unanswerable questions</b> as their own test group. A system that improves on answerable questions by always answering will quietly break these.</li>
+</ul>
+
+<h2>7. Setting targets without inventing numbers</h2>
+<p>Your metrics have no targets yet, and the right rule is "no target without a source". A defensible way to get one:</p>
+<ol>
+  <li>Measure the baseline with its interval (Phase 2 data plus the unseen questions).</li>
+  <li>Decide with your supervisor what an error costs. Is a wrong answer worse than a refusal? A target follows from that, not from a round number.</li>
+  <li>State the target as a range you can defend, with the interval and the sample size beside it, and record where it came from (your <code>target_source</code> column).</li>
+</ol>
+
+<h2>8. A one-page report template</h2>
+<div class="wrap"><table>
+<tr><th>Section</th><th>Contents</th></tr>
+<tr><td>Question</td><td>What decision does this result support? What did you compare?</td></tr>
+<tr><td>Setup</td><td>Model tags, prompt versions, chunk policy, data version, run id, date, hardware.</td></tr>
+<tr><td>Result</td><td>Score with interval, number of questions, per-category scores, paired differences with the counts.</td></tr>
+<tr><td>Failures</td><td>The failure table, with 3 example rows.</td></tr>
+<tr><td>Limits</td><td>What this result does not show (small set, one run, one judge).</td></tr>
+<tr><td>Next step</td><td>One concrete change, and how you will know it worked.</td></tr>
+</table></div>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <a href="https://eugeneyan.com/writing/llm-patterns/">Eugene Yan's patterns post</a> has a section on evals that lists many metric types in one place. Skim it to see what exists, then choose only what answers your question.</div>
+
+<footer>Part of the AI Engineering Guides. The intervals were computed with the Wilson method and the p-values with an exact two-sided sign test. They show how noisy small test sets are; they are not metric targets.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small Local Models</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <b>AI Engineering Guides</b>
+  <a href="index.html">Home</a>
+  <a href="senior-path.html">Senior path</a>
+  <a href="rag.html">RAG</a>
+  <a href="evals.html">Evals</a>
+  <a class="on" href="local-models.html">Local models</a>
+  <a href="engineering.html">Engineering</a>
+</div></header>
+<main>
+<h1>Small local models</h1>
+<p class="lead">Your system must run offline on a laptop with a 4 GB graphics card. That is a hard constraint, and it makes you learn what most engineers skip: what a model costs. Book chapters 2 and 9.</p>
+
+<h2>1. Your budget</h2>
+<div class="wrap"><table>
+<tr><th>Resource</th><th>Your laptop (read on 2026-10-26)</th><th>What it means</th></tr>
+<tr><td>GPU memory</td><td>RTX 3050 Laptop, 4 GB, about 2.9 GB free</td><td>The real limit. A model that does not fit runs partly on the CPU, which is much slower.</td></tr>
+<tr><td>System memory</td><td>15.3 GB</td><td>Room for a CPU fallback and for the data, but not for several big models.</td></tr>
+<tr><td>CPU</td><td>Ryzen 7 6800H</td><td>Good enough for embeddings and light work; slow for generation with larger models.</td></tr>
+<tr><td>Models now</td><td>qwen3-embedding-0.6b, phi4-mini, glm-ocr (8-bit)</td><td>Three jobs: embed, answer, read scans.</td></tr>
+</table></div>
+
+<h2>2. Memory math, in words</h2>
+<h3>Weights</h3>
+<p>A model is a very large list of numbers (parameters). Each number takes some bytes. So:</p>
+<p><b>memory for weights is about (number of parameters) × (bytes per parameter)</b></p>
+<div class="wrap"><table>
+<tr><th>Format</th><th>Bytes per parameter</th><th>A 4-billion model</th><th>A 0.6-billion model</th></tr>
+<tr><td>16-bit</td><td>2</td><td>about 8 GB</td><td>about 1.2 GB</td></tr>
+<tr><td>8-bit</td><td>1</td><td>about 4 GB</td><td>about 0.6 GB</td></tr>
+<tr><td>4-bit</td><td>about 0.5 (a bit more in practice)</td><td>about 2 GB</td><td>about 0.3 GB</td></tr>
+</table></div>
+<p>These are estimates of the weights only. Real files are a little larger because the compressed formats store extra numbers to undo the compression.</p>
+
+<h3>Quantization</h3>
+<p>Quantization stores each parameter with fewer bits. It makes the model smaller and usually faster, at some loss in quality. The loss differs from model to model and from task to task, so <b>measure it on your questions</b>. File names like <code>Q4_K_M</code> or <code>Q8_0</code> tell you the method and bit count; your <code>glm-ocr:q8_0</code> is 8-bit.</p>
+
+<h3>The context cache (the part people forget)</h3>
+<p>While the model reads your prompt it keeps, for every token and every layer, two small lists (a key and a value) so that it does not recompute them. This is the <b>KV cache</b>. It grows <b>in a straight line with the number of tokens</b>, and it sits in the same memory as the weights.</p>
+<p><b>cache size is about 2 × layers × KV heads × head size × bytes × tokens</b></p>
+<p>An example with an <i>invented</i> shape (32 layers, 8 KV heads, head size 128, 16-bit): that is 2 × 32 × 8 × 128 × 2 = 131,072 bytes per token, about 128 KB. At 8,000 tokens it is about 1 GB. That alone would be a third of your free GPU memory. Real models have different shapes (look in the model's config file on its Hugging Face page), but the lesson is general: <b>a longer prompt costs memory, not only time</b>.</p>
+<div class="box senior"><b class="t">Senior habit</b>
+  Before you download a model, estimate: weights + cache at your chosen context length + some overhead. If it is near your limit, expect trouble. Write the estimate down, then compare it with the real number from <code>ollama ps</code> and <code>nvidia-smi</code>. Over time your estimates become accurate.</div>
+
+<h2>3. Speed: two different costs</h2>
+<ul>
+  <li><b>Prompt processing</b> (reading your prompt). Fast per token, but it grows with prompt length. A long RAG prompt makes every question slow before the first word appears.</li>
+  <li><b>Generation</b> (writing the answer). One token at a time. Limited mostly by how fast the memory can be read, which is why a smaller or more compressed model writes faster.</li>
+  <li><b>Partial offload.</b> If part of the model is on the CPU, every token waits for the slow part. Speed can drop a lot. Check the processor split that <code>ollama ps</code> shows.</li>
+  <li><b>Model swapping.</b> If two models do not fit together, the server unloads one to load the other. Each swap costs seconds. This matters for a pipeline that alternates between embedding and answering.</li>
+</ul>
+<div class="box try"><b class="t">Try it here</b>
+  The Ollama response for a generation call includes counts and durations for the prompt and for the generated text (fields such as <code>prompt_eval_count</code>, <code>prompt_eval_duration</code>, <code>eval_count</code>, <code>eval_duration</code>; durations are in nanoseconds, check the API documentation for your version). Compute tokens per second for prompt and for generation, and add them to every run record. Then run the same question at three prompt lengths and plot time against length.</div>
+
+<h2>4. Design the pipeline around the memory limit</h2>
+<p>Not all models are needed at the same moment. Plan two profiles:</p>
+<div class="wrap"><table>
+<tr><th>Profile</th><th>Models needed</th><th>Tip</th></tr>
+<tr><td><b>Ingestion</b> (rare, batch)</td><td>The vision model for scans; the embedding model to index.</td><td>Run all the scans first, then unload the vision model, then embed. Speed matters less here.</td></tr>
+<tr><td><b>Question answering</b> (interactive)</td><td>The embedding model for the query, then the language model for the answer.</td><td>The embedding model is small, so both can stay loaded. Keep the context short.</td></tr>
+<tr><td><b>Judging and tuning</b> (offline batch)</td><td>The language model, and a judge model.</td><td>Run all generations, then all judgements. Do not alternate per item.</td></tr>
+</table></div>
+<p>Ollama can keep a model loaded for a set time (<code>keep_alive</code>) or unload it at once. Read how it works in the docs and decide per profile.</p>
+
+<h2>5. Getting reliable output from small models</h2>
+<p>A small model follows instructions less reliably than a large one. You cannot fix that with a bigger model, so you design around it:</p>
+<ul>
+  <li><b>One job per call.</b> "Find the facts" and then "write the answer" beats one big instruction.</li>
+  <li><b>Short, direct prompts</b> with the task first and a clear output shape. Test whether examples help; sometimes they confuse small models.</li>
+  <li><b>Constrained output.</b> Ollama can limit output to a JSON schema in recent versions (check the structured outputs section of the docs for your version). That removes a whole class of parse errors.</li>
+  <li><b>Validate in code, retry once, and count.</b> Report how often a retry was needed. That number is a quality metric.</li>
+  <li><b>Use code instead of the model</b> wherever a rule is exact: sorting, counting, comparing dates, checking a citation exists.</li>
+  <li><b>Low temperature for facts.</b> Higher only if you want variety.</li>
+  <li><b>Thinking models.</b> Some models write a long hidden reasoning first. That costs time and context and can break strict formats. You already excluded the thinking-only <code>qwen3:4b</code> tag for good reasons; keep that note in the registry.</li>
+</ul>
+
+<h2>6. Choosing and comparing models</h2>
+<ol>
+  <li>Write the <b>task</b> first (embed in this language, answer from context, read a scanned page).</li>
+  <li>Filter by <b>fit</b> (the memory estimate) and <b>licence</b> (read it; some licences restrict use).</li>
+  <li>Pick two or three <b>candidates</b>. More is rarely useful.</li>
+  <li>Run <b>the same evaluation</b> on all, report intervals (see Evals), and record speed and memory.</li>
+  <li>Pick the simplest one that is good enough. Record why, with the numbers, in the registry.</li>
+</ol>
+<div class="box warn"><b class="t">Careful</b>
+  A model that scores well on a public leaderboard may fail on your documents, your language, or your prompt format. Use leaderboards to choose candidates and your own test to choose the winner. Also remember the book is a snapshot: model names in it will be old by now.</div>
+<div class="box check"><b class="t">Go check this yourself</b>
+  <ul>
+    <li><a href="https://docs.ollama.com/">Ollama documentation</a>: the API reference (the options and the response fields), the FAQ on context length and keeping models loaded, and the page on structured outputs. Check the details for the version you have installed, because they change between versions.</li>
+    <li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a>: the engine behind much local inference. Read its README and the quantization documentation to understand the file formats.</li>
+    <li>The model cards on Hugging Face for each of your three models: size, context length, licence, recommended settings, and how to format a query.</li>
+    <li>Book chapter 9 (inference optimization) for the general ideas, and chapter 2 for model sizes and architecture.</li>
+  </ul>
+</div>
+
+<h2>7. Making an offline system trustworthy</h2>
+<ul>
+  <li><b>Pin versions.</b> Record the Ollama version and each model's digest (<code>ollama show</code> and <code>ollama list</code> display identifying details). A model tag can point to a different file later.</li>
+  <li><b>Prove it works offline.</b> Your planned run with Wi-Fi off is the right test. Run the full pipeline end to end and confirm nothing fails or waits for a network call.</li>
+  <li><b>Keep the files.</b> Store the model files and installers somewhere safe, so the system can be rebuilt without the internet.</li>
+  <li><b>No hidden network use.</b> Check each library for telemetry or automatic downloads, and set them off. A first run that downloads a tokenizer is a classic surprise.</li>
+  <li><b>Record the hardware</b> with every result: GPU, free memory at the start, driver version. A result from a different machine is not comparable.</li>
+  <li><b>Plan for failure.</b> What does the system do if the model server is down, if memory runs out mid-run, or if a file is corrupt? Decide now and test it.</li>
+</ul>
+<div class="box try"><b class="t">Try it here</b>
+  Create one table with a row per model and these columns: size on disk, memory in use (from <code>ollama ps</code> and <code>nvidia-smi</code>), context length used, prompt tokens per second, generation tokens per second, the date and the Ollama version. Fill it for your three models. This is your finished "how to use the models" evidence and it is the data Phase 14 will need.</div>
+
+<h2>8. Fine-tuning: not yet</h2>
+<p>Fine-tuning means training a model a little more on your own examples. The usual order is: better prompts, then better retrieval and data, then (only if still needed) fine-tuning. It needs data, compute, and an evaluation to prove it helped, and with 4 GB of memory it is limited. Read book chapter 7 when you reach that question, and ask first whether the problem is really in the model.</p>
+
+<footer>Part of the AI Engineering Guides. The numbers in the memory tables are estimates from simple arithmetic, not measurements of your models. Measure with <code>ollama ps</code> and <code>nvidia-smi</code>.</footer>
+</main>
+</body>
+</html>

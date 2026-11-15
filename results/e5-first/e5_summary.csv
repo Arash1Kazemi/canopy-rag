@@ -1,0 +1,5 @@
+llm,setting,probes,accuracy,M20_repeatability,unparsed,accuracy_on_blind_spots
+qwen3-4b,fixed,52,1.0,0.981,0,1.0
+qwen3-4b,sampled,52,1.0,1.0,0,1.0
+phi4-mini,fixed,52,0.981,1.0,0,1.0
+phi4-mini,sampled,52,0.981,1.0,0,1.0

@@ -1,0 +1,8 @@
+node_id,name,layer_index,parent_node_id,field_of_activity,is_terminal,reporting_format,min_judge_score,confidentiality
+N0,City Council,0,,governance,false,none,,internal
+N1,Transport Dept,1,N0,transport,false,executive,18,internal
+N2,Water Dept,1,N0,water,false,executive,18,internal
+N3,Housing Dept,1,N0,housing,true,executive,18,confidential
+N4,Transit Agency,2,N1,public transit,false,managerial,18,internal
+N5,Water Utility,2,N2,water supply,true,managerial,18,internal
+N6,Bus Network Project,3,N4,bus routes,false,technical_summary,18,internal

@@ -1,0 +1,281 @@
+llm,question_id,type,asked_at_node,answer,cited,correct,refused,ttft_s,total_s,wall_s,tokens_per_s,generated_tokens,prompt_tokens,gpu_mb,ram_mb,GR1,GR2,GR3,GR4,GR5,was_correct
+qwen3-4b,Q01,version_trap,N4,"Okay, let me tackle this question. The user is asking how many buses the Transit Agency has now. I need to look at the documents provided to find the answer.
+
+First, I'll check the document [D10_bus_fleet_inventory_v2]. It's the Bus Fleet Inventory with version 2. The table shows the fleet by type: Diesel has 78 buses, Hybrid 32, Electric 25. The total is listed as 135. The average fleet age is mentioned but that's not relevant here. The reason for change says 15 new electric buses delivered, 2 diesel retired, 2 hybrid added, but the total is already calculated as 135.
+
+So the current total number of buses is 135. The document clearly states **Total** as **135**. I should cite this document as [D10_bus_fleet_inventory_v2]. There's no other document that provides this information, so I don't need to look elsewhere. The answer is straightforward from the table.
+</think>
+
+135 [D10_bus_fleet_inventory_v2]",D10_bus_fleet_inventory_v2;D10_bus_fleet_inventory_v2;D10_bus_fleet_inventory_v2,True,False,4.797,12.514,12.54,30.37,234,246,3462,63,True,,,,True,True
+qwen3-4b,Q02,version_trap,N4,"Okay, let me tackle this question. The user is asking how many electric buses the agency runs. I need to look at the documents provided to find the answer.
+
+First, I'll check the documents section. There's only one document listed: [D10_bus_fleet_inventory_v2]. That's the Bus Fleet Inventory. The document shows a table with the fleet by type. 
+
+Looking at the table under ""Fleet by type"", it lists:
+- Diesel: 78 buses
+- Hybrid: 32 buses
+- Electric: 25 buses
+- Total: 135 buses
+
+The question is specifically about electric buses. The table clearly states ""Electric"" has 25 buses. The document also mentions the average fleet age, but that's not relevant here. 
+
+I need to make sure there's no other document that might have this information, but the user said to use only the documents below, and there's only one document here. So the answer should be 25 electric buses.
+
+I should cite the document as [D10_bus_fleet_inventory_v2] since that's where the number comes from. The rules say to put the citation in square brackets after each fact. 
+
+Double-checking: The",D10_bus_fleet_inventory_v2;D10_bus_fleet_inventory_v2,True,False,0.115,8.88,8.883,29.303,256,245,3654,63,True,,,,True,True
+qwen3-4b,Q03,duplicate,N4,"Okay, the user is asking about the maximum length of a driver shift based on the provided documents. Let me check the documents carefully.
+
+Looking at [D12_driver_shift_rules], it states: ""Maximum shift length: 9 hours, including a 45-minute break after 4.5 hours of driving."" 
+
+So the answer is clearly 9 hours. I need to cite the document as [D12_driver_shift_rules] in square brackets after the answer. 
+
+The rules specify it's 9 hours total including the break, but the question asks for ""maximum length of a driver shift"" which matches this exact phrasing. No other documents are relevant here. 
+
+I'll keep it short as instructed: just the number with the citation. No extra explanation needed since the user wants concise answers.
+</think>
+
+9 hours [D12_driver_shift_rules]",D12_driver_shift_rules;D12_driver_shift_rules;D12_driver_shift_rules,True,False,0.174,6.413,6.415,28.675,178,229,3603,63,True,,,True,True,True
+qwen3-4b,Q04,factual,N4,"Okay, let me tackle this question. The user is asking how many buses are overdue for maintenance. I need to check the documents provided to find the answer.
+
+Looking at the documents, there's [D13_maintenance_schedule_2025]. This document has a section called ""Status on 30 June 2025"" where it lists ""Buses overdue for service: 18."" 
+
+So the answer should be 18. I have to make sure I'm only using the documents and not adding outside knowledge. The rule says to cite the file after each fact. The document is D13_maintenance_schedule_2025, so the citation would be [D13_maintenance_schedule_2025].
+
+Wait, the user specified to use only the documents below. The documents list shows that D13 is the maintenance schedule for 2025. The status section clearly states 18 buses overdue. There's no other document that mentions this number. So the answer is 18 with the citation.
+
+I should check if there's any other part of the document that might have conflicting info, but the table shows service intervals, but the status section is where the overdue count is. The",D13_maintenance_schedule_2025;D13_maintenance_schedule_2025,True,False,0.156,8.987,8.989,29.073,256,243,3674,63,True,,,,True,True
+qwen3-4b,Q05,factual,N6,"Okay, let me tackle this question. The user is asking how many bus trips were made in the first half of 2025. 
+
+First, I need to check the documents provided. The only document here is [D11_ridership_report_H1_2025], which is a Ridership Report for the first half of 2025. 
+
+Looking at the ""Totals"" section of that document, it clearly states: ""Total bus trips in H1 2025: 15.2 million."" 
+
+So the answer should be 15.2 million. I need to cite the document correctly. The rule says to put the file name in square brackets after each fact. The document is labeled [D11_ridership_report_H1_2: Wait, no, the document name is [D11_ridership_report_H1_2025]. 
+
+Wait, the user wrote the document as [D11_ridership_report_H1_2025] in the documents section. So the citation should be [D11_ridership_report_H1_2025].
+
+The question is straightforward. The report directly states the total bus trips",D11_ridership_report_H1_2025;D11_ridership_report_H1_2025;D11_ridership_report_H1_2025;D11_ridership_report_H1_2025,True,False,0.188,8.902,8.906,29.485,256,304,3676,63,True,,,,True,True
+qwen3-4b,Q06,contradiction,N6,"Okay, the user is asking which route is the busiest based on the documents provided. Let me go through the documents carefully.
+
+First, looking at [D11_ridership_report_H1_2025], it's a ridership report for the first half of 2025. The report states that Route 12 has 2.9 million trips, which is 19% of all trips. Route 7 has 2.4 million trips (16%), and Route 3 has 1.8 million (12%). The conclusion says ""Route 12 is the busiest route in the network."" 
+
+Then there's [D16_passenger_survey_2025], which is a passenger survey. In this survey, when asked which route they find most overcrowded at peak hours, Route 7 has 41% of respondents, Route 12 has 27%, and so on. But this is about perceived overcrowding, not actual ridership numbers. The survey's limitation mentions that off-peak travelers are under-represented, so it's not a direct measure of bus trips.
+
+The question is about which route is the busiest. The ridership report (D11)",D11_ridership_report_H1_2025;D16_passenger_survey_2025,False,False,0.226,9.283,9.286,28.357,256,547,3597,63,,,False,,True,False
+qwen3-4b,Q07,factual,N6,"Okay, the user is asking what passengers asked for most in the survey. Let me check the documents provided.
+
+Looking at the documents, there's a section labeled ""Most requested improvements (multiple choice)"". The options listed are:
+- Shorter waits at peak hours: 58%
+- Real-time bus arrival information: 35%
+- Cleaner buses and better ventilation: 22%
+- Electric and quieter buses: 19%
+
+The highest percentage here is 58% for shorter waits at peak hours. So passengers asked for that most. 
+
+I need to cite the document. The document is [D16_passenger_survey_2025]. The section is part of that document. 
+
+The answer should be short. So the response would be ""Shorter waits at peak hours"" with the citation [D16_passenger_survey_2025]. 
+
+Wait, the question says ""what did passengers ask for most"". The survey results show that 58% chose shorter waits at peak hours as the most requested improvement. So that's the answer. 
+
+I should make sure there's no other document that might have this info, but the user specified to use only the documents below. The only relevant document here is D1",D16_passenger_survey_2025;D16_passenger_survey_2025,True,False,0.245,9.426,9.427,28.031,256,368,3720,63,True,,,,True,True
+qwen3-4b,Q08,factual,N6,"Okay, let me tackle this problem step by step. The user wants to know which route had the most complaints in the Q2 2025 passenger complaint log. 
+
+First, I'll look at the documents provided. There's only one document here: [D18_complaint_log_Q2_2025], which is a table with 8 complaints. 
+
+I need to count how many complaints are associated with each route. Let me go through each row:
+
+- C-101: Route 7
+- C-102: Route 12
+- C-103: Route 7
+- C-104: Route 3
+- C-105: Route 7
+- C-106: Route 7
+- C-107: Route 12
+- C-108: Route 7
+
+Now I'll tally them up:
+- Route 7 appears in complaints C-101, C-103, C-105, C-106, C-108 → that's 5 complaints
+- Route 12 appears in C-102 and C-107",D18_complaint_log_Q2_2025,True,False,0.289,9.203,9.208,28.825,256,491,3713,63,True,,,,True,True
+qwen3-4b,Q09,factual,N6,"Okay, let me tackle this question. The user is asking for the estimated cost of the Route 7 pilot based on the provided documents. 
+
+First, I need to check which document contains this information. The documents list shows [D20_cost_estimate] as the relevant file. The title is ""Cost Estimate: Route 7 Pilot and Permanent Extension"". 
+
+Looking at the content of D20, there's a section labeled ""Pilot (8 weeks, Route 7), EUR"". It breaks down the costs into several items: Extra driver hours, Energy and fuel, Extra maintenance, and Passenger information and signage. The total estimate for the pilot is clearly stated as 310,000 EUR.
+
+I should verify if there's any other document that might have this info, but the user specified to use only the provided documents. Since D20 is the only one here and it directly addresses the pilot cost, that's the source. 
+
+The question is straightforward—just asking for the pilot cost. The answer is 310,000 EUR, and it's cited from D20. No other documents are needed here. 
+
+I'll make sure to format the answer as per the rules: short, with the citation in",D20_cost_estimate,True,False,0.186,8.938,8.939,29.369,256,315,3513,63,True,,,,True,True
+qwen3-4b,Q10,factual,N6,"Okay, the user is asking about the actual cost of the pilot based on the documents provided. Let me check the documents carefully.
+
+Looking at the documents section, there's [D17_pilot_test_report] which is the Route 7 Pilot Test Report. In this document, under the ""Cost"" section, it clearly states: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR.""
+
+So the actual cost is 298,000 EUR. I need to cite the source as [D17_pilot_test_report] since that's where this information is found. The rules say to use only the documents and cite the file after each fact. 
+
+I should make sure there's no other document that might have this information, but the user specified to use only the documents below, and this is the only one provided. The answer should be short as per rule 4. 
+
+No need to mention the estimate since the question is specifically about the actual cost. The answer is straightforward here. 
+
+Let me phrase it concisely: The actual cost of the pilot was 298,000 EUR [D17_pilot_test_report].",D17_pilot_test_report;D17_pilot_test_report;D17_pilot_test_report,True,False,0.217,9.396,9.398,27.985,256,351,3437,63,True,,,,True,True
+qwen3-4b,Q11,factual,N6,"Okay, the user is asking about what happened to peak-hour load on Route 7 during the pilot. Let me check the documents provided.
+
+Looking at the documents, there's a file called [D17_pilot_test_report]. In this report, under the ""Results"" section, there's a table showing measures before and during the pilot. The measure ""Average peak-hour load"" has values of 94% before and 71% during the pilot. 
+
+So the answer should be that the peak-hour load decreased from 94% to 71%. I need to cite the document properly. The rule says to use the file name in square brackets. The file is [D17_pilot_test_report]. 
+
+Wait, the user specified to use only the documents below. The documents section lists [D17_pilot_test_report] as the relevant file. The answer is clear here: during the pilot, the average peak-hour load was 71%, which is a decrease from the before value of 94%. 
+
+I should phrase it concisely. The question is ""What happened to peak-hour load on Route 7 during the pilot?"" So the answer is it decreased to 71%. But the exact value from",D17_pilot_test_report;D17_pilot_test_report;D17_pilot_test_report,True,False,0.192,9.454,9.456,27.654,256,356,3365,63,True,,,,True,True
+qwen3-4b,Q12,scanned_pdf,N6,"Hmm, the user is asking about what the 18 June meeting decided, and I need to answer based only on the provided documents. Let me check the documents carefully.
+
+Looking at the documents, there's one document labeled [D19_meeting_minutes_2025-06-18] which contains meeting minutes for the Bus Network Project. The date matches the 18 June 2025 meeting the user is asking about.
+
+In this document, under the ""Decisions"" section, it clearly states two things:
+1. The Route 7 pilot is approved to start on 4 August 2025 for 8 weeks.
+2. The pilot budget is capped at 310,000 EUR.
+
+These are the specific decisions made at that meeting. The actions section has tasks for different people, but the question is about what was decided, so I should focus on the decisions.
+
+I need to cite the source properly. The document is [D19_meeting_minutes_2025-06-18], so I'll put that in square brackets after the answer.
+
+The user said to keep the answer short, so I'll just state the two decisions concisely. No outside",D19_meeting_minutes_2025-06-18;D19_meeting_minutes_2025-06-18,False,False,0.189,8.603,8.605,30.515,256,313,3373,63,False,,,,True,False
+qwen3-4b,Q13,factual,N6,"Okay, the user is asking who must compare the tap-in data with the survey and by when. Let me check the documents provided.
+
+Looking at the documents, there's [D19_meeting_minutes_2025-06-18]. The meeting minutes from June 18, 2025, have an ""Actions"" section. Under Actions, it says: ""Ali Hosseini: compare the tap-in ridership data with the survey results, due 15 July 2025.""
+
+So the person who must do this is Ali Hosseini, and the deadline is July 15, 2025. The document clearly states the action and the due date. I need to cite the document correctly. The file name is [D19_meeting_minutes_2025-06-18]. 
+
+I should make sure there's no other document that mentions this. The user specified to use only the documents below, and this is the only one provided. The answer is straightforward here. 
+
+The user wants a short answer with the citation. So the response should be: Ali Hosseini, due 15 July 2025 [D19_meeting",D19_meeting_minutes_2025-06-18;D19_meeting_minutes_2025-06-18,True,False,0.178,8.336,8.346,31.395,256,318,3373,63,True,,,,True,True
+qwen3-4b,Q14,factual,N0,"Okay, let me tackle this question. The user is asking for the total city budget for 2025. I need to check the documents provided to find the answer.
+
+Looking at the documents, there's [D01_budget_summary_2025] which is the City of Rivergate's Budget Summary for 2025. The document shows a table with different areas and their budgets in EUR million. The total is listed as 480 under the ""Total"" row. 
+
+The notes mention that the Transport allocation includes a fleet budget of 38 million, but that's part of the Transport section. The total budget here is clearly stated as 480 million EUR. 
+
+I should make sure there's no other document that might have the total. The other documents aren't listed here, so I'll stick to D01. The answer should be 480 million EUR, cited as [D01_budget_summary_2025]. 
+
+Wait, the question is about the total city budget for 2025. The document's title says ""Budget Summary 2025"" and the total is 480. The notes mention capital reserves aren't included, but the total",D01_budget_summary_2025;D01_budget_summary_2025,True,False,0.161,8.191,8.192,31.969,256,256,3373,63,True,,,,True,True
+qwen3-4b,Q15,factual,N0,"Okay, let me tackle this question. The user is asking how much of the budget goes to transport. I need to look at the documents provided to find the answer.
+
+First, I'll check the documents section. There's only one document listed: [D01_budget_summary_2025]. The title is ""City of Rivergate: Budget Summary 2025"". 
+
+Looking at the table in that document under ""Allocation by area (EUR million)"", the Transport area has a budget of 92 million EUR. The note says that the Transport allocation includes the fleet budget of 38 million, but the question is about the total transport budget, so the 92 million is the figure we need.
+
+I should make sure there's no other document that might have more details. The user specified to use only the documents below, and here there's only D01. So the answer should be 92 million EUR from that document.
+
+Wait, the question is ""how much of the budget goes to transport?"" The total budget is 480 million, but the transport allocation is clearly listed as 92. The note mentions the fleet budget is part of transport, but the total transport is 92. So the answer",D01_budget_summary_2025,True,False,0.152,8.243,8.245,31.725,256,252,3374,63,True,,,,True,True
+qwen3-4b,Q16,factual,N0,"Okay, the user is asking about a specific decision the Council needs to make by 31 October 2025. Let me check the documents provided.
+
+Looking at the documents, there's [D03_quarterly_priorities_memo_Q3_2025]. This memo from the Office of the Mayor to all department heads lists the top three priorities. The third section under ""Decision needed from the Council"" states: ""Approve a permanent extension of peak-hour buses on overcrowded routes. Estimated annual cost: 1.2 million EUR. Deadline: 31 October 2025. The decision depends on the results of the Transit Agency pilot.""
+
+So the decision required by the Council by that deadline is approving the permanent extension of peak-hour buses on overcrowded routes. The cost is mentioned as 1.2 million EUR, but the question is specifically about the decision needed. The memo clearly states this as the required action with the deadline. 
+
+I need to make sure I'm only using the documents. The answer should be short and cite the document. The user said to use only the documents below, and this is the only relevant document here. 
+
+The answer should be: ""Approve a permanent extension of peak-hour",D03_quarterly_priorities_memo_Q3_2025,True,False,0.166,8.257,8.259,31.756,256,279,3374,63,True,,,,True,True
+qwen3-4b,Q17,factual,N1,"Okay, let me tackle this question step by step. The user is asking about the NO2 target and whether it has been reached, based solely on the provided documents. 
+
+First, I need to locate the relevant information in the documents. The only document here is [D06_air_quality_report_2025], which is an Air Quality Report for 2025 (Half-Year). 
+
+Looking at the table in this document:
+- For 2025 (first half), the ""Target"" column shows ""35 for 2:2025"". That's clear - the target is 35 micrograms per cubic metre for 2025.
+- The ""Findings"" section explicitly states: ""The 2025 target of 35 has not yet been reached."" 
+
+So the target is 35 μg/m³, and it hasn't been reached. 
+
+I should check if there's any ambiguity. The document says ""2025 (first half)"" for the measured value (39), but the target is clearly stated as 35 for the full 2025 year. The findings confirm it hasn't been reached by the first half of 20",D06_air_quality_report_2025,True,False,0.183,8.297,8.299,31.661,256,287,3374,63,True,,,,True,True
+qwen3-4b,Q18,factual,N1,"Okay, let me tackle this question. The user is asking what share of NO2 comes from road transport. I need to look at the documents provided to find the answer.
+
+First, I'll check the documents section. There's [D06_air_quality_report_2025] which is the Air Quality Report 2025 (Half-Year). The report has a section called ""Findings"" where it lists several points. 
+
+Looking at the Findings bullet points: 
+- The 2025 target of 35 has not yet been reached.
+- Road transport accounts for 58% of NO2 in the city.
+- The Council strategy aims for 20% fewer car trips by 2030 (see Strategy 2030).
+
+Ah, here it is. The second bullet point states that ""Road transport accounts for 58% of NO2 in the city."" So the share of NO2 from road transport is 58%.
+
+I need to make sure I'm using only the documents. The question is straightforward, and the answer is directly in the report. No outside knowledge needed here. The citation should be [D06_air_quality_report_2025] as per the",D06_air_quality_report_2025;D06_air_quality_report_2025,True,False,0.15,8.268,8.27,31.653,256,285,3356,63,True,,,,True,True
+qwen3-4b,Q19,factual,N2,"Hmm, the user is asking about water loss and the target for an organization's water system. They want me to answer using only the provided documents, with specific rules about citations and handling insufficient knowledge.
+
+Looking at the documents, I see there's one relevant file: [D08_annual_water_report_2024]. This is the Annual Water Report 2024 issued by the Water Dept. 
+
+In this document, I can find the key figures section. It states: ""Water lost to leaks: 22%, about 11.4 million cubic metres."" So the current water loss is 22% (or 11.4 million cubic metres). 
+
+For the target, the document mentions: ""Reduce network losses to 12% by 2030 (see City Strategy 2030)."" So the target is 12% by 2030.
+
+I need to be precise with the citations. The rule says to cite the file after each fact. Since both facts come from the same document [D08_annual_water_report_2024], I'll cite it once after the full answer.
+
+The user wants a short answer. I'll state the current loss and",D08_annual_water_report_2024;D08_annual_water_report_2024,True,True,0.147,8.237,8.256,31.759,256,226,3356,63,True,,,,True,True
+qwen3-4b,Q20,terminal_node,N5,"Okay, let me tackle this question. The user is asking how many leaks were detected in the first half of 2025. I need to check the documents provided to find the answer.
+
+Looking at the documents, there's one document listed: [D14_leak_statistics_summary_2025]. The description says it's a Leak Statistics Summary for the first half of 2025. 
+
+In that document, the key point is ""Leaks detected: 412."" So that's the number they're looking for. The other details like average repair time and hotspots aren't relevant here. 
+
+I should make sure there's no other document that might have this info, but the user specified to use only the documents below, and there's only one document here. The answer is clearly stated as 412 leaks detected. 
+
+I need to cite the document properly. The rule says to put the file name in square brackets after each fact. So the answer should be ""412"" followed by [D14_leak_statistics_summary_2025]. 
+
+Wait, the user said ""Keep the answer short."" So just the number and the citation. Let me check the rules again. Rule ",D14_leak_statistics_summary_2025;D14_leak_statistics_summary_2025,True,False,0.118,8.086,8.099,32.24,256,188,3356,63,True,,,,True,True
+qwen3-4b,Q21,terminal_node,N3,"Okay, let me tackle this question. The user is asking how many households are on the housing waiting list. I need to check the provided documents to find the answer.
+
+Looking at the documents, there's one document listed: [D09_housing_quarterly_summary_Q2_2025]. The Housing Dept issued this quarterly summary for Q2 2025. 
+
+In that document, it states: ""Households on the waiting list: 8,200."" So that's the number they're looking for. 
+
+I should make sure there's no other document that might have this information, but the user only provided one document. The rules say to use only the documents below, so I don't have to look outside. 
+
+The answer is 8,200 households. I need to cite the document in square brackets after the answer. The document's identifier is [D09_housing_quarterly_summary_Q2_2025]. 
+
+Wait, the user mentioned the example format: [D10_bus_fleet_inventory_v2]. So I should write it as [D09_housing_quarterly_summary_Q2_2025]. 
+
+Double-checking the numbers: The",D09_housing_quarterly_summary_Q2_2025;D09_housing_quarterly_summary_Q2_2025;D10_bus_fleet_inventory_v2;D09_housing_quarterly_summary_Q2_2025,True,False,0.123,8.113,8.115,32.141,256,197,3357,63,True,,,,False,True
+qwen3-4b,Q25,multi_document,N6,"Okay, let me tackle this question step by step. The user wants to know if the pilot cost more or less than estimated, and by how much. I need to check the documents provided.
+
+First, I'll look at the documents. There's [D17_pilot_test_report] and [D20_cost_estimate]. 
+
+Starting with [D17_pilot_test_report], it mentions the cost section: ""Actual pilot cost: 298,000 EUR, against an estimate of 310,000 EUR."" So the actual cost was 298,000 EUR, and the estimate was 310,000 EUR. 
+
+Then, [D20_cost_estimate] shows the estimate as 310,000 EUR for the pilot. That matches the estimate mentioned in D17. 
+
+The question is whether the pilot cost more or less than estimated. The actual cost is 298,000 EUR, which is less than the estimate of 310,000 EUR. The difference is 310,000 - 298,000 = 12,000 EUR. So",D17_pilot_test_report;D20_cost_estimate;D17_pilot_test_report;D20_cost_estimate,True,False,0.191,8.697,8.699,30.256,256,556,3357,63,True,,,,True,True
+qwen3-4b,Q26,version_history,N4,"Okay, let me tackle this question. The user is asking how many buses the agency had in January 2025. 
+
+First, I need to check the documents provided. The only document here is [D10_bus_fleet_inventory_v1], which is a bus fleet inventory report. 
+
+Looking at the table in that document, it lists the number of buses by type: Diesel (80), Hybrid (30), Electric (10). The total is 120. The date mentioned is 15 January 2025, and the report says ""Fleet by type"" with the total being 120. 
+
+The question is about the number of buses in January 2025. The report's date is 15 January 2025, so it's likely that this inventory reflects the fleet count as of that date. The total buses are 120, as per the table. 
+
+I should check if there's any other info in the document. The average fleet age is 9.4 years, but that's not relevant for the total count. The key point is the total buses listed as 120. 
+
+The user specified to use only the documents,",D10_bus_fleet_inventory_v1,True,False,0.141,8.242,8.244,31.756,256,220,3346,63,True,,,,True,True
+phi4-mini,Q01,version_trap,N4,135 buses [D10_bus_fleet_inventory_v2].,D10_bus_fleet_inventory_v2,True,False,12.119,12.473,12.474,37.758,13,227,3337,63,True,,,,True,True
+phi4-mini,Q02,version_trap,N4,25 electric buses [D10_bus_fleet_inventory_v2].,D10_bus_fleet_inventory_v2,True,False,0.094,0.462,0.463,38.539,14,226,3338,63,True,,,,True,True
+phi4-mini,Q03,duplicate,N4,"9 hours, including a 45-minute break after 4.5 hours of driving [D12_driver_shift_rules].",D12_driver_shift_rules,True,False,0.117,0.805,0.806,37.184,25,210,3338,63,True,,,True,True,True
+phi4-mini,Q04,factual,N4,18 [D13_maintenance_schedule_2025],D13_maintenance_schedule_2025,True,False,0.115,0.431,0.433,39.909,12,215,3338,63,True,,,,True,True
+phi4-mini,Q05,factual,N6,15.2 million [D11_ridership_report_H1_2025],D11_ridership_report_H1_2025,True,False,0.148,0.643,0.66,37.859,18,280,3344,63,True,,,,True,True
+phi4-mini,Q06,contradiction,N6,Route 12 [D11_ridership_report_H1_2025],D11_ridership_report_H1_2025,False,False,0.168,0.636,0.638,36.987,17,510,3344,63,,,False,,True,False
+phi4-mini,Q07,factual,N6,Shorter waits at peak hours [D16_passenger_survey_2025],D16_passenger_survey_2025,True,False,0.169,0.68,0.695,37.306,18,345,3344,63,True,,,,True,False
+phi4-mini,Q08,factual,N6,Route 7,,True,False,0.209,0.317,0.318,47.44,4,426,3344,63,True,,,,False,False
+phi4-mini,Q09,factual,N6,"310,000 [D20_cost_estimate]",D20_cost_estimate,True,False,0.147,0.452,0.471,39.125,11,274,3344,63,True,,,,True,True
+phi4-mini,Q10,factual,N6,"298,000 EUR [D17_pilot_test_report]",D17_pilot_test_report,True,False,0.17,0.528,0.53,38.473,13,323,3344,63,True,,,,True,True
+phi4-mini,Q11,factual,N6,The peak-hour load on Route 7 during the pilot decreased from 94% to 71%. [D17_pilot_test_report],D17_pilot_test_report,True,False,0.146,0.951,0.953,36.285,29,328,3344,63,True,,,,True,True
+phi4-mini,Q12,scanned_pdf,N6,"The 18 June meeting decided to approve the Route 7 pilot to start on 4 August 2025 for 8 weeks, with a budget capped at 310,000 EUR. Additionally, Ali Hosseini was tasked to compare the tap-in ridership data with the survey results by 15 July 2025, and Leila Rahimi was assigned to prepare passenger announcements for the pilot by 25 July 2025. [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,True,False,0.147,3.024,3.025,36.058,103,283,3343,63,True,,,,True,True
+phi4-mini,Q13,factual,N6,"Ali Hosseini must compare the tap-in ridership data with the survey results, due by 15 July 2025. [D19_meeting_minutes_2025-06-18]",D19_meeting_minutes_2025-06-18,True,False,0.127,1.242,1.244,36.933,41,289,3343,63,True,,,,True,True
+phi4-mini,Q14,factual,N0,480 million [D01_budget_summary_2025],D01_budget_summary_2025,True,False,0.133,0.455,0.457,39.555,12,230,3343,63,True,,,,True,True
+phi4-mini,Q15,factual,N0,92 million [D01_budget_summary_2025],D01_budget_summary_2025,True,False,0.097,0.406,0.408,39.554,12,228,3343,63,True,,,,True,True
+phi4-mini,Q16,factual,N0,Approve a permanent extension of peak-hour buses on overcrowded routes. [D03_quarterly_priorities_memo_Q3_2025],D03_quarterly_priorities_memo_Q3_2025,True,False,0.141,0.963,0.976,37.31,30,255,3343,63,True,,,,True,True
+phi4-mini,Q17,factual,N1,The NO2 target for 2025 is 35 micrograms per cubic metre. It has not yet been reached. [D06_air_quality_report_2025],D06_air_quality_report_2025,True,False,0.141,1.104,1.114,36.986,35,254,3343,63,True,,,,True,False
+phi4-mini,Q18,factual,N1,58% [D06_air_quality_report_2025],D06_air_quality_report_2025,True,False,0.091,0.425,0.427,39.509,13,252,3343,63,True,,,,True,True
+phi4-mini,Q19,factual,N2,Current water loss: 11.4 million cubic metres [D08_annual_water_report_2024]. Target: Reduce network losses to 12% by 2030 [D08_annual_water_report_2024].,D08_annual_water_report_2024;D08_annual_water_report_2024,True,False,0.113,1.389,1.391,37.347,47,200,3345,63,True,,,,True,False
+phi4-mini,Q20,terminal_node,N5,412 [D14_leak_statistics_summary_2025],D14_leak_statistics_summary_2025,True,False,0.101,0.454,0.456,38.592,13,170,3345,63,True,,,,True,True
+phi4-mini,Q21,terminal_node,N3,"8,200 [D09_housing_quarterly_summary_Q2_2025]",D09_housing_quarterly_summary_Q2_2025,True,False,0.106,0.594,0.596,39.288,19,177,3345,63,True,,,,True,True
+phi4-mini,Q25,multi_document,N6,"The pilot cost 298,000 EUR, which was 12,000 EUR less than the estimated cost of 310,000 EUR. [D17_pilot_test_report], [D20_cost_estimate]",D17_pilot_test_report;D20_cost_estimate,True,False,0.146,1.441,1.459,34.738,44,495,3345,63,True,,,,True,True
+phi4-mini,Q26,version_history,N4,120 buses [D10_bus_fleet_inventory_v1],D10_bus_fleet_inventory_v1,True,False,0.112,0.486,0.488,38.265,13,200,3352,63,True,,,,True,True

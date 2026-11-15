@@ -1,0 +1,53 @@
+probe_id,question_id,candidate,label,gr1_blind_spot
+J01,Q01,"The Transit Agency now has 135 buses: 78 diesel, 32 hybrid and 25 electric.",right,no
+J02,Q01,"The Transit Agency has 120 buses.",wrong,no
+J03,Q02,"The agency runs 25 electric buses.",right,no
+J04,Q02,"The agency runs 32 electric buses.",wrong,no
+J05,Q03,"A shift can last at most 9 hours, with a 45 minute break after 4.5 hours of driving.",right,no
+J06,Q03,"A shift can last at most 12 hours.",wrong,no
+J07,Q04,"18 buses were overdue for maintenance on 30 June 2025.",right,no
+J08,Q04,"22 buses are overdue for maintenance.",wrong,no
+J09,Q05,"There were 15.2 million bus trips in the first half of 2025.",right,no
+J10,Q05,"There were 12.5 million bus trips in the first half of 2025.",wrong,no
+J11,Q06,"The sources disagree. The ridership report says Route 12 is the busiest, with 2.9 million trips. The passenger survey says Route 7, with 41% of respondents.",right,no
+J12,Q06,"Route 12 is the busiest route, with 2.9 million trips.",wrong,no
+J13,Q07,"Passengers asked most for shorter waits at peak hours, at 58%.",right,no
+J14,Q07,"Passengers asked most for real-time arrival information, at 35%.",wrong,no
+J15,Q08,"Route 7 had the most complaints, 5 of the 8.",right,no
+J16,Q08,"Route 12 had the most complaints.",wrong,no
+J17,Q09,"The pilot was estimated to cost 310,000 EUR.",right,no
+J18,Q09,"The pilot was estimated to cost 298,000 EUR.",wrong,no
+J19,Q10,"The pilot actually cost 298,000 EUR.",right,no
+J20,Q10,"The pilot actually cost 310,000 EUR.",wrong,no
+J21,Q11,"Average peak-hour load on Route 7 fell from 94% to 71%.",right,no
+J22,Q11,"Average peak-hour load on Route 7 rose from 71% to 94%.",wrong,yes
+J23,Q12,"The meeting approved the Route 7 pilot from 4 August for 8 weeks, with a budget cap of 310,000 EUR. Ali Hosseini must do the data check by 15 July and Leila Rahimi the announcements by 25 July.",right,no
+J24,Q12,"The meeting approved a Route 12 pilot from 1 September for 6 weeks, with a budget cap of 250,000 EUR.",wrong,no
+J25,Q13,"Ali Hosseini must compare the tap-in data with the survey by 15 July 2025.",right,no
+J26,Q13,"Leila Rahimi must do it by 25 July 2025.",wrong,no
+J27,Q14,"The total city budget for 2025 is 480 million EUR.",right,no
+J28,Q14,"The total city budget for 2025 is 92 million EUR.",wrong,no
+J29,Q15,"92 million EUR of the budget goes to transport.",right,no
+J30,Q15,"74 million EUR of the budget goes to transport.",wrong,no
+J31,Q16,"The Council must approve a permanent extension of peak-hour buses, at about 1.2 million EUR a year.",right,no
+J32,Q16,"The Council must reject the plan to extend peak-hour buses.",wrong,no
+J33,Q17,"The NO2 target for 2025 is 35, and it has not been reached: 41 in 2024 and 39 in the first half of 2025.",right,no
+J34,Q17,"The NO2 target of 35 was reached, with 39 measured in 2025.",wrong,no
+J35,Q18,"Road transport accounts for 58% of NO2.",right,no
+J36,Q18,"Road transport accounts for 22% of NO2.",wrong,no
+J37,Q19,"Water loss is 22% today, and the target is 12% by 2030.",right,no
+J38,Q19,"Water loss is 12% today, and the target is 22% by 2030.",wrong,yes
+J39,Q20,"412 leaks were detected in the first half of 2025.",right,no
+J40,Q20,"321 leaks were detected in the first half of 2025.",wrong,no
+J41,Q21,"8,200 households are on the housing waiting list.",right,no
+J42,Q21,"6,400 households are on the housing waiting list.",wrong,no
+J43,Q22,"Insufficient knowledge.",right,no
+J44,Q22,"The chlorine residual in drinking water must be between 0.2 and 0.5 mg/L.",wrong,no
+J45,Q23,"Insufficient knowledge.",right,no
+J46,Q23,"The planned budget for the new metro line is 1.2 billion EUR.",wrong,no
+J47,Q24,"Insufficient knowledge.",right,no
+J48,Q24,"The head of procurement is Reza Karimi.",wrong,no
+J49,Q25,"The pilot cost less than estimated: 298,000 EUR against 310,000 EUR, so 12,000 EUR under.",right,no
+J50,Q25,"The pilot cost more than estimated: 310,000 EUR against 298,000 EUR, so 12,000 EUR over.",wrong,no
+J51,Q26,"The agency had 120 buses in January 2025.",right,no
+J52,Q26,"The agency had 135 buses in January 2025.",wrong,no

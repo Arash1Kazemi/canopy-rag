@@ -1,0 +1,27 @@
+question_id,asked_at_node,language,type,question,expected_answer,source_files
+Q01,N4,en,version_trap,How many buses does the Transit Agency have now?,"135 (78 diesel, 32 hybrid, 25 electric). The v1 figure of 120 is outdated.",D10_bus_fleet_inventory_v2
+Q02,N4,en,version_trap,How many electric buses does the agency run?,25,D10_bus_fleet_inventory_v2
+Q03,N4,en,duplicate,What is the maximum length of a driver shift?,"9 hours including a 45-minute break after 4.5 hours of driving. Cite the rule once, not twice.",D12_driver_shift_rules (or its copy)
+Q04,N4,en,factual,How many buses are overdue for maintenance?,18 (as of 30 June 2025),D13_maintenance_schedule_2025
+Q05,N6,en,factual,How many bus trips were made in the first half of 2025?,15.2 million,D11_ridership_report_H1_2025
+Q06,N6,en,contradiction,Which route is the busiest?,"Sources conflict: the ridership report says Route 12 (2.9 million trips, 19%); the passenger survey says Route 7 (41% of respondents). Tap-in data excludes free-pass holders. The honest answer states the conflict.","D11, D16"
+Q07,N6,en,factual,What did passengers ask for most in the survey?,Shorter waits at peak hours (58%),D16_passenger_survey_2025
+Q08,N6,en,factual,"In the complaint log, which route had the most complaints?",Route 7 (5 of 8 complaints),D18_complaint_log_Q2_2025
+Q09,N6,en,factual,What was the estimated cost of the Route 7 pilot?,"310,000 EUR",D20_cost_estimate
+Q10,N6,en,factual,What was the actual cost of the pilot?,"298,000 EUR",D17_pilot_test_report
+Q11,N6,en,factual,What happened to peak-hour load on Route 7 during the pilot?,It fell from 94% to 71%.,D17_pilot_test_report
+Q12,N6,en,scanned_pdf,What did the 18 June meeting decide?,"Approve the Route 7 pilot from 4 August for 8 weeks; budget cap 310,000 EUR; actions for Ali Hosseini (data check by 15 July) and Leila Rahimi (announcements by 25 July).",D19_meeting_minutes_2025-06-18
+Q13,N6,en,factual,"Who must compare the tap-in data with the survey, and by when?","Ali Hosseini, by 15 July 2025",D19_meeting_minutes_2025-06-18
+Q14,N0,en,factual,What is the total city budget for 2025?,480 million EUR,D01_budget_summary_2025
+Q15,N0,en,factual,How much of the budget goes to transport?,92 million EUR,D01_budget_summary_2025
+Q16,N0,en,factual,What decision does the Council need to make by 31 October 2025?,Approve a permanent extension of peak-hour buses (about 1.2 million EUR per year).,D03_quarterly_priorities_memo_Q3_2025
+Q17,N1,en,factual,What is the NO2 target and has it been reached?,"Target is 35 for 2025; not reached (41 in 2024, 39 in H1 2025).",D06_air_quality_report_2025
+Q18,N1,en,factual,What share of NO2 comes from road transport?,58%,D06_air_quality_report_2025
+Q19,N2,en,factual,What is the current water loss and the target?,22% today; 12% by 2030.,D08_annual_water_report_2024
+Q20,N5,en,terminal_node,How many leaks were detected in the first half of 2025?,412,D14_leak_statistics_summary_2025
+Q21,N3,en,terminal_node,How many households are on the housing waiting list?,"8,200",D09_housing_quarterly_summary_Q2_2025
+Q22,N6,en,node_boundary,What is the allowed chlorine residual in drinking water?,Insufficient knowledge in this node. The answer exists in N2 (0.2 to 0.5 mg/L) but N6 must not see it.,none for N6
+Q23,N6,en,unanswerable,What is the planned budget for the new metro line?,Insufficient knowledge: not in any document.,none
+Q24,N3,en,unanswerable,Who is the head of procurement inside the Housing Dept?,Insufficient knowledge: the internals of a terminal node are not modeled.,none
+Q25,N6,en,multi_document,"Did the pilot cost more or less than estimated, and by how much?","Less: 298,000 EUR actual against 310,000 EUR estimated, so 12,000 EUR under.","D17_pilot_test_report, D20_cost_estimate"
+Q26,N4,en,version_history,How many buses did the agency have in January 2025?,"120 (from version 1 of the fleet inventory, dated 15 January 2025).",D10_bus_fleet_inventory_v1

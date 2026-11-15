@@ -1,0 +1,6 @@
+rule_id,name,rule,automatic
+GR1,key_facts_present,"After lowercasing and removing thousands separators, the answer contains every required fact (one alternative per group is enough) and none of the forbidden facts.",yes
+GR2,refusal_phrase,"The answer contains the phrase insufficient knowledge and none of the forbidden facts. It must not guess.",yes
+GR3,conflict_stated,"GR1 where the required facts name both sources and include a conflict word, so the answer reports that the sources disagree instead of choosing one. A human reads every result at first, because a conflict word is only a proxy.",partly
+GR4,duplicate_cited_once,"Exactly one of the cited files belongs to the duplicated document (D12). Citing the file and its copy fails.",yes
+GR5,citations_valid,"At least one cited file is an answer-key source, and no cited file is outside the answer-key sources. A file from another node or an old version counts as outside.",yes

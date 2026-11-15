@@ -1,0 +1,11 @@
+rule_id,objective_id,statement,how_tested
+H01,O3,"A node answers only from its own documents. Retrieval for a node never returns a chunk from another node.",unit test with a fake embedding model; evaluation on Q22
+H02,O3,"The registry has exactly one root, and each layer is its parent's layer plus 1.",run_checks.py for the data; unit test for the code
+H03,O2,"Each knowledge item has exactly one active version.",unit test
+H04,O2,"An update adds a version and never deletes an old one.",unit test
+H05,O6,"A transfer package that scores below the judge threshold is never sent to the parent.",unit test with a stub judge
+H06,O7,"The system runs with the network off. No code calls an address outside localhost.",unit test that blocks the network; one manual run with the network off
+H07,O4,"Issue status and progress follow fixed rules: the same input always gives the same status and percentage.",unit test
+H08,O5,"The ranking of the 7 issues is the same on every run.",unit test with fixed inputs
+H09,O1,"Every answer has at least one citation, or it says insufficient knowledge.",unit test on the answer formatter; evaluation
+H10,O3,"A terminal node has one summary document and no child nodes.",run_checks.py

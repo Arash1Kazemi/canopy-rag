@@ -1,0 +1,1 @@
+Read all the text in this image exactly as it is written. Return only the text, in reading order, with no comments. Keep every number, date and name exactly as shown.

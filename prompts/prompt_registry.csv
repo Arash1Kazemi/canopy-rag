@@ -1,0 +1,12 @@
+prompt_id,task,version,file,placeholders,applies_to,notes
+P01,answer,1,answer_with_citations_v1.txt,context;question,task:llm,"Answer from the given chunks, cite the file stem in square brackets, refuse with the fixed phrase."
+P02,read_page,1,read_scanned_page_v1.txt,,qwen3-vl-2b;qwen3.5-2b,"General instruction to read a page image."
+P03,read_page,1,read_scanned_page_glm_v1.txt,,glm-ocr-q8,"The model card says the prompt must start with Text Recognition:."
+P04,judge,1,judge_reference_v1.txt,question;reference;candidate,task:llm,"Reference-based judge for the Phase 2 probe. Replies with one line of JSON."
+P05,embed_query,1,embed_query_nomic_v1.txt,text,nomic-embed-text,"Prefix required by the model card."
+P06,embed_document,1,embed_document_nomic_v1.txt,text,nomic-embed-text,"Prefix required by the model card."
+P07,embed_query,1,embed_query_embeddinggemma_v1.txt,text,embeddinggemma-300m,"Query format from the model card, with the default task search result."
+P08,embed_document,1,embed_document_embeddinggemma_v1.txt,text,embeddinggemma-300m,"Document format from the model card, with no title."
+P09,embed_query,1,embed_query_qwen3_v1.txt,text,qwen3-embedding-0.6b,"Instruct then Query format from the model card, with its own example task. There is no space after Query:."
+P10,embed_document,1,embed_document_plain_v1.txt,text,qwen3-embedding-0.6b;bge-m3,"No instruction on documents (the model cards of both models)."
+P11,embed_query,1,embed_query_plain_v1.txt,text,bge-m3,"bge-m3 needs no instruction on queries (model card)."

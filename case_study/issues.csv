@@ -1,0 +1,8 @@
+issue_id,node_id,parent_issue_id,title,description,status
+I01,N6,,Route 7 overcrowded at peak,Peak load above the 85% policy limit on Route 7,analyzing
+I02,N6,I01,Verify ridership data,Tap-in data says Route 12 is busiest; survey says Route 7,in progress
+I03,N6,I01,Pilot extra buses on Route 7,8-week pilot with 6 extra buses,solved
+I04,N6,I01,Re-survey passengers,Include off-peak travellers and free-pass holders,new
+I05,N4,,Bus maintenance backlog,18 buses overdue; 4 mechanic vacancies,in progress
+I06,N1,,NO2 target not reached,39 measured in H1 2025 against a target of 35,unsolved
+I07,N2,,Water loss above target,22% lost today; target is 12% by 2030,in progress

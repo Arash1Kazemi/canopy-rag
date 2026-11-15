@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline Hierarchical RAG: the project explained</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --warn:#9a5b00; --warn-soft:#fdf0d8; --bad:#a32d2d; --bad-soft:#fbe6e6;
+  --gray-soft:#eceae3; --code:#f0eee8;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --warn:#f0b45a; --warn-soft:#3a2d12; --bad:#f19a9a; --bad-soft:#3b1d1d;
+    --gray-soft:#262a31; --code:#23262d; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+  --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+  --warn:#f0b45a; --warn-soft:#3a2d12; --bad:#f19a9a; --bad-soft:#3b1d1d;
+  --gray-soft:#262a31; --code:#23262d; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+code{background:var(--code);padding:.1em .4em;border-radius:5px;font:.9em ui-monospace,Consolas,monospace}
+h1,h2,h3{line-height:1.25;font-weight:600;margin:0}
+h2{font-size:1.65rem;margin-bottom:.4rem}
+h3{font-size:1.1rem;margin:1.4rem 0 .5rem}
+p{margin:.5rem 0}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0;max-width:1180px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;height:100vh;padding:1.5rem 1rem;overflow:auto;border-right:1px solid var(--line)}
+nav.side .brand{font-weight:600;font-size:.95rem;margin-bottom:1rem;color:var(--ink)}
+nav.side a{display:block;padding:.4rem .7rem;margin:.1rem 0;border-radius:8px;text-decoration:none;color:var(--muted);font-size:.93rem}
+nav.side a:hover{background:var(--gray-soft);color:var(--ink)}
+nav.side a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.theme{margin-top:1rem;font-size:.85rem;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.4rem .7rem;border-radius:8px;cursor:pointer;width:100%}
+main{padding:0 1.5rem 4rem;min-width:0}
+section{padding:3rem 0 1rem;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:0}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.lead{font-size:1.1rem;color:var(--muted);max-width:68ch}
+.hero{padding:3.2rem 0 2rem}
+.hero h1{font-size:2.3rem;max-width:20ch;margin:.4rem 0 .8rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;margin:1.5rem 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:.9rem 1rem;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:1.7rem;line-height:1.1;color:var(--accent)}
+.stat span{font-size:.85rem;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow)}
+.grid{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:1rem 0}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:.12rem .55rem;border-radius:99px;background:var(--gray-soft);color:var(--muted)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.acc{background:var(--accent-soft);color:var(--accent)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.8rem 1rem;border-radius:0 10px 10px 0;margin:1rem 0}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.good{border-color:var(--good);background:var(--good-soft)}
+table{width:100%;border-collapse:collapse;font-size:.93rem;margin:.6rem 0}
+th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.82rem;text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+button{font:inherit}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.45rem .9rem;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--muted);padding:.4rem .8rem;border-radius:99px;cursor:pointer;font-size:.9rem}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* tree */
+.tree-wrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:1rem;align-items:start}
+.tree-wrap svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.node rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2;cursor:pointer;transition:.15s}
+.node.gray rect{fill:var(--gray-soft);stroke:var(--muted)}
+.node.term rect{stroke-dasharray:5 4}
+.node.sel rect{stroke-width:3}
+.node:hover rect{filter:brightness(.97)}
+.node text{fill:var(--ink);font-size:13px;pointer-events:none}
+.node text.s{fill:var(--muted);font-size:11px}
+.edge{stroke:var(--muted);stroke-width:1.3;fill:none}
+.layerlbl{fill:var(--muted);font-size:11px}
+/* pipeline */
+.flow{display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0}
+.step{flex:1 1 120px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:.55rem .7rem;font-size:.85rem;cursor:pointer;text-align:left;color:var(--muted)}
+.step b{display:block;color:var(--ink);font-size:.95rem}
+.step.on{border-color:var(--accent);background:var(--accent-soft)}
+.step.done{border-color:var(--good)}
+.stage{min-height:150px}
+.chip{display:inline-block;font:.82rem ui-monospace,Consolas,monospace;background:var(--code);border-radius:6px;padding:.15rem .5rem;margin:.15rem .2rem .15rem 0}
+.chip.ok{background:var(--good-soft);color:var(--good)}
+.chip.no{background:var(--bad-soft);color:var(--bad)}
+/* bars */
+.bar{display:grid;grid-template-columns:150px 1fr 70px;gap:.6rem;align-items:center;margin:.35rem 0;font-size:.9rem}
+.track{position:relative;background:var(--gray-soft);border-radius:6px;height:20px}
+.fill{height:100%;border-radius:6px;background:var(--accent)}
+.fill.over{background:var(--warn)}
+.fill.no{background:var(--bad)}
+.limit{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad)}
+.legend{font-size:.85rem;color:var(--muted)}
+/* timeline */
+.phases{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem;margin:1rem 0}
+.phase{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:.7rem .8rem;font-size:.9rem}
+.phase b{display:block}
+.phase.done{border-color:var(--good)}
+.phase.next{border-color:var(--accent);background:var(--accent-soft)}
+pre{background:var(--code);border-radius:10px;padding:.8rem 1rem;overflow:auto;font:.85rem/1.5 ui-monospace,Consolas,monospace;margin:.4rem 0;position:relative}
+.copy{position:absolute;right:.5rem;top:.5rem;font-size:.75rem;padding:.2rem .5rem}
+details{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:.2rem .9rem;margin:.5rem 0}
+summary{cursor:pointer;padding:.5rem 0;font-weight:600}
+.files{font:.88rem/1.7 ui-monospace,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;overflow:auto;white-space:pre}
+.files i{font-style:normal;color:var(--muted)}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  nav.side{position:static;height:auto;display:flex;gap:.2rem;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:.8rem 1rem}
+  nav.side .brand{width:100%;margin:0}
+  nav.side .theme{width:auto;margin:0 0 0 auto}
+  .tree-wrap{grid-template-columns:1fr}
+  .bar{grid-template-columns:110px 1fr 56px}
+  .hero h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Sections">
+  <div class="brand">Offline RAG project</div>
+  <a href="#idea">The idea</a>
+  <a href="#org">The test city</a>
+  <a href="#journey">A question's journey</a>
+  <a href="#measure">How we measure</a>
+  <a href="#models">Models and laptop</a>
+  <a href="#results">Results</a>
+  <a href="#lessons">What we learned</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#run">Run it yourself</a>
+  <a href="#files">Where is what</a>
+  <button class="theme" id="themeBtn" type="button">Switch light / dark</button>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">AI engineering project</div>
+  <h1>A knowledge system that answers from its own documents, offline.</h1>
+  <p class="lead">An organization is a tree of units. Each unit keeps its own documents, answers questions about them with citations, tracks its problems, and sends a short, quality-checked report up to the unit above. Everything runs on small models on a laptop, with no internet.</p>
+  <div class="stats">
+    <div class="stat"><b>7</b><span>nodes in the test city</span></div>
+    <div class="stat"><b>26</b><span>test questions</span></div>
+    <div class="stat"><b>28</b><span>metrics defined</span></div>
+    <div class="stat"><b>45</b><span>glossary terms</span></div>
+    <div class="stat"><b>6</b><span>model experiments</span></div>
+    <div class="stat"><b>64</b><span>unit tests passing</span></div>
+  </div>
+  <div class="note good"><b>Where we are:</b> the domain work (parts 1) and the first model baseline (part 2) are done. Parts 3 (architecture) and 4 (document ingestion) come next.</div>
+</header>
+
+<section id="idea">
+  <div class="eyebrow">1. The idea</div>
+  <h2>What problem does it solve?</h2>
+  <p class="lead">Today, knowledge travels up an organization as written reports. That is slow, and facts get lost on the way. This project builds the same flow in software.</p>
+  <div class="grid">
+    <div class="card"><span class="tag acc">Idea 1</span><h3>Knowledge stays at the node</h3><p>A node answers only from documents stored in its own folder. A bus project can never read the water department's files. This is hard rule H01.</p></div>
+    <div class="card"><span class="tag acc">Idea 2</span><h3>Issues link knowledge to people</h3><p>A problem (an issue) points to the documents that explain it and to the people who can solve it.</p></div>
+    <div class="card"><span class="tag acc">Idea 3</span><h3>Reports climb one layer at a time</h3><p>A node writes a summary at the detail level its parent needs. A judge scores it out of 20, and only 18 or more is sent up.</p></div>
+  </div>
+  <h3>The three kinds of model</h3>
+  <div class="grid">
+    <div class="card"><b>Embedding model</b><p>Turns text into a list of numbers so that texts about the same thing end up close together. It finds the right pages.</p><span class="tag">Analogy: a librarian with a map of meaning</span></div>
+    <div class="card"><b>LLM</b><p>Writes the answer from the pages it is handed, cites the file, and says "insufficient knowledge" when the answer is missing.</p><span class="tag">Analogy: a writer who may only use the desk's pages</span></div>
+    <div class="card"><b>Vision model (LVM)</b><p>Reads a picture of a page, such as a scanned meeting minute, and returns text.</p><span class="tag">Analogy: a reader looking at a photograph</span></div>
+  </div>
+  <div class="note"><b>Why small models are enough here:</b> the LLM does not need to know facts. It needs to follow rules. That is what the experiments test.</div>
+</section>
+
+<section id="org">
+  <div class="eyebrow">2. The test bed</div>
+  <h2>The test city</h2>
+  <p class="lead">A made-up city, built to test the system. Click a box. Dashed boxes are terminal nodes: black boxes with one summary document, whose inside is not modeled.</p>
+  <div class="tree-wrap">
+    <svg viewBox="0 0 640 420" role="img" aria-label="Organization tree of the city">
+      <text class="layerlbl" x="8" y="62">Layer 0</text><text class="layerlbl" x="8" y="162">Layer 1</text><text class="layerlbl" x="8" y="262">Layer 2</text><text class="layerlbl" x="8" y="362">Layer 3</text>
+      <path class="edge" d="M350 86V110H190V130M350 86V130M350 86V110H550V130"/>
+      <path class="edge" d="M190 186V230M350 186V230M190 286V330"/>
+      <g class="node" data-n="N0"><rect x="270" y="30" width="160" height="56" rx="9"/><text x="350" y="54" text-anchor="middle">N0 City Council</text><text class="s" x="350" y="72" text-anchor="middle">top of the tree</text></g>
+      <g class="node" data-n="N1"><rect x="110" y="130" width="160" height="56" rx="9"/><text x="190" y="154" text-anchor="middle">N1 Transport</text><text class="s" x="190" y="172" text-anchor="middle">department</text></g>
+      <g class="node gray" data-n="N2"><rect x="270" y="130" width="160" height="56" rx="9"/><text x="350" y="154" text-anchor="middle">N2 Water</text><text class="s" x="350" y="172" text-anchor="middle">department</text></g>
+      <g class="node gray term" data-n="N3"><rect x="470" y="130" width="160" height="56" rx="9"/><text x="550" y="154" text-anchor="middle">N3 Housing</text><text class="s" x="550" y="172" text-anchor="middle">terminal</text></g>
+      <g class="node" data-n="N4"><rect x="110" y="230" width="160" height="56" rx="9"/><text x="190" y="254" text-anchor="middle">N4 Transit Agency</text><text class="s" x="190" y="272" text-anchor="middle">fleet and drivers</text></g>
+      <g class="node gray term" data-n="N5"><rect x="270" y="230" width="160" height="56" rx="9"/><text x="350" y="254" text-anchor="middle">N5 Water Utility</text><text class="s" x="350" y="272" text-anchor="middle">terminal</text></g>
+      <g class="node" data-n="N6"><rect x="90" y="330" width="200" height="56" rx="9"/><text x="190" y="354" text-anchor="middle">N6 Bus Network Project</text><text class="s" x="190" y="372" text-anchor="middle">most documents here</text></g>
+    </svg>
+    <div class="card" id="nodeInfo" aria-live="polite"></div>
+  </div>
+
+  <h3>Problems planted on purpose</h3>
+  <p>The case study is not clean data. Each problem tests one thing the system must eventually handle.</p>
+  <div class="scroll"><table>
+    <tr><th>Problem</th><th>Where</th><th>What it tests</th></tr>
+    <tr><td>Exact duplicate</td><td>D12 and its copy</td><td>Duplicate detection; citing once</td></tr>
+    <tr><td>New version</td><td>D10 v1 (120 buses), v2 (135)</td><td>Versioning; which one is active</td></tr>
+    <tr><td>Contradiction</td><td>D11 says Route 12 is busiest, D16 says Route 7</td><td>Reporting a conflict honestly</td></tr>
+    <tr><td>Scanned document</td><td>D19 meeting minutes</td><td>Reading text from an image</td></tr>
+    <tr><td>Node boundary</td><td>D07 belongs to Water; Q22 asks the bus project</td><td>A node never sees another node's files</td></tr>
+    <tr><td>Unanswerable</td><td>Q23, Q24</td><td>Saying "insufficient knowledge"</td></tr>
+  </table></div>
+</section>
+
+<section id="journey">
+  <div class="eyebrow">3. How it works</div>
+  <h2>A question's journey</h2>
+  <p class="lead">Follow one question through the system. Pick an example, then step through.</p>
+  <div class="tabs" id="exTabs"></div>
+  <div class="flow" id="flow"></div>
+  <div class="card stage" id="stage" aria-live="polite"></div>
+  <p style="margin-top:.8rem"><button class="btn" id="prev">Back</button> <button class="btn primary" id="next">Next step</button></p>
+</section>
+
+<section id="measure">
+  <div class="eyebrow">4. Measuring</div>
+  <h2>How do we know it works?</h2>
+  <p class="lead">A metric is a rule that turns "does it work?" into a number. We define the rule first, measure a baseline second, and only then set a target with the supervisor.</p>
+  <div class="grid">
+    <div class="card"><span class="tag">Metric</span><p>A named rule, such as the share of questions answered correctly.</p></div>
+    <div class="card"><span class="tag">Baseline</span><p>The value on the simplest working version. Measured, not chosen.</p></div>
+    <div class="card"><span class="tag">Target</span><p>The lowest value that is still useful. Agreed after the baseline. Still empty.</p></div>
+    <div class="card"><span class="tag bad">Hard rule</span><p>Must hold on every run: pass or fail, never a percentage.</p></div>
+  </div>
+  <h3>How one answer is graded</h3>
+  <p>Each question lists the facts a correct answer must contain. The answer is lowercased, then checked. A <code>|</code> means "or", a <code>;</code> means "and".</p>
+  <div class="card">
+    <p><b>Q02:</b> How many electric buses does the agency run? Required fact: <code>25</code></p>
+    <div id="gradeDemo"></div>
+  </div>
+  <div class="note warn"><b>The weak spot:</b> "load rose from 71% to 94%" contains both numbers of the right answer but means the opposite. That is why a human reads every failed answer, and why the judge probe includes such cases.</div>
+  <h3>The 10 hard rules</h3>
+  <div class="scroll"><table id="hardTable"></table></div>
+  <h3>Eight objectives</h3>
+  <div class="grid" id="objs"></div>
+</section>
+
+<section id="models">
+  <div class="eyebrow">5. The models</div>
+  <h2>What fits your laptop?</h2>
+  <p class="lead">Ryzen 7 6800H, 15.3 GB RAM, and an RTX 3050 with 4 GB of GPU memory, of which about 2.9 GB is free. A rule from the book: a model needs about its file size times 1.2. The red line is the free GPU memory.</p>
+  <div class="tabs" id="memTabs"></div>
+  <div id="memBars"></div>
+  <p class="legend">Blue fits on the GPU. Orange is slightly over, so part runs on the CPU (slower, but it works). Red does not fit.</p>
+  <div class="note"><b>Cards hide traps.</b> <code>nomic-embed-text</code> needs the prefixes <code>search_query:</code> and <code>search_document:</code>, which the download page does not mention. <code>glm-ocr</code> needs its prompt to start with <code>Text Recognition:</code>. <code>qwen3:4b</code> turned out to be a thinking-only version.</div>
+</section>
+
+<section id="results">
+  <div class="eyebrow">6. The first baseline</div>
+  <h2>What the experiments found</h2>
+  <p class="lead">Six experiments, all offline, on 28 October. Choose one.</p>
+  <div class="tabs" id="resTabs"></div>
+  <div class="card" id="resBody"></div>
+  <h3>The baseline setup</h3>
+  <div class="grid">
+    <div class="card"><span class="tag good">Embedding</span><b> qwen3-embedding:0.6b</b><p>Every answer source in the top 3 chunks.</p></div>
+    <div class="card"><span class="tag good">LLM</span><b> phi4-mini:3.8b</b><p>21 of 23 correct, all 3 refusals right, 0.7 s per question.</p></div>
+    <div class="card"><span class="tag good">Vision</span><b> glm-ocr:q8_0</b><p>All 7 facts read exactly, but about a minute per page.</p></div>
+  </div>
+</section>
+
+<section id="lessons">
+  <div class="eyebrow">7. Lessons</div>
+  <h2>What we learned</h2>
+  <details open><summary>Look at the answers, not only the score</summary><p><code>qwen3:4b</code> scored 91%, but its "answers" began "Okay, let me tackle this question..." It is a thinking-only model whose reasoning filled the reply limit. Its numbers were meaningless, so it is excluded and must be rerun with <code>qwen3:4b-instruct</code>.</p></details>
+  <details><summary>Grading rules have bugs too</summary><p>Four rules were too strict (Q07, Q08, Q17, Q19). Fixing them moved the main metric from 0.74 to 0.91, with no change in the model. Both numbers are reported, and the fix is written down.</p></details>
+  <details><summary>The planted problems are real problems</summary><p>With the duplicate in the index, the model cites both copies (Q03). Asked about a contradiction, it picks one side (Q06). This is the case for the next parts of the project.</p></details>
+  <details><summary>Compare "right files given" with "real retrieval"</summary><p>The gap between the two runs is the cost of retrieval mistakes. Here it was a single question, and it was the duplicate.</p></details>
+  <details><summary>Ties on small tests are not wins</summary><p>All three embedding models found every source at k=3. On 23 questions, one question is about 4 percentage points. The test cannot tell the models apart.</p></details>
+  <details><summary>Real problems on the way</summary><p>Windows reserved Ollama's default port after a restart, so the server uses port 11500. The Ollama installer, once tried, left traces that broke downloads until it was removed. A test written before the real run found a crash on question Q12 before any download.</p></details>
+</section>
+
+<section id="roadmap">
+  <div class="eyebrow">8. Roadmap</div>
+  <h2>Sixteen parts, two done</h2>
+  <p class="lead">The proposal has 16 parts. The names come from the proposal (section 21). The team hub (<code>site/index.html</code>) explains each part in full.</p>
+  <div class="phases" id="phases"></div>
+  <h3>What is left from parts 1 and 2</h3>
+  <div class="scroll"><table>
+    <tr><th>Task</th><th>Why</th></tr>
+    <tr><td>Pull <code>qwen3:4b-instruct</code> and rerun E2, E3, E5, E6</td><td>The only valid second LLM</td></tr>
+    <tr><td>Run one experiment with Wi-Fi off</td><td>Proves "fully offline"</td></tr>
+    <tr><td>Rerun E6 with the GPU/CPU split recorded</td><td>The split was not captured</td></tr>
+    <tr><td>Agree the targets with the supervisor</td><td>Every target waits for this</td></tr>
+    <tr><td>Write about 10 unseen questions</td><td>The 26 were used to choose the setup</td></tr>
+  </table></div>
+  <h3>Part 3: architecture</h3>
+  <p>Define bounded contexts, aggregates, entities, value objects, repositories and domain services, the unit-test structure, and storage abstractions. Deliverables: a DDD architecture document, a domain model specification, and an initial unit-test plan. The key decision: which object owns which rule (for example, does a knowledge item own "exactly one active version"?).</p>
+  <h3>Part 4: document ingestion</h3>
+  <p>Register DOC, DOCX and PDF files, build text extraction adapters, record knowledge metadata, define the citation model, and set first chunking rules. Deliverables: an ingestion prototype, a metadata schema, and a chunking specification. Old binary DOC files are the hardest format to read.</p>
+</section>
+
+<section id="run">
+  <div class="eyebrow">9. Hands-on</div>
+  <h2>Run it yourself</h2>
+  <p class="lead">Two PowerShell windows. Window 1 runs the server and stays open. The full runbook is <code>docs/operator_guide.md</code>.</p>
+  <h3>Window 1: the server</h3>
+  <pre data-copy>&amp; "E:\UNI\Semesterr 7\AI-Engineering\UNI-Project\scripts\start_ollama.ps1"</pre>
+  <h3>Window 2: set up, once per window</h3>
+  <pre data-copy>$env:OLLAMA_HOST = "127.0.0.1:11500"
+$env:OLLAMA_MODELS = "E:\UNI\Semesterr 7\AI-Engineering\ollama-models"
+$ollama = "E:\UNI\Semesterr 7\AI-Engineering\ollama\ollama.exe"
+$py = "E:\UNI\Semesterr 7\AI-Engineering\.venv\bin\python.exe"
+$env:OLLAMA_EXE = $ollama
+cd "E:\UNI\Semesterr 7\AI-Engineering\UNI-Project"</pre>
+  <h3>Download a model and check</h3>
+  <pre data-copy>&amp; $ollama pull qwen3:4b-instruct
+&amp; $py -m baseline_runner check</pre>
+  <h3>Run experiments</h3>
+  <pre data-copy>&amp; $py -m baseline_runner e2 --models phi4-mini --run-id e2-again
+&amp; $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --models phi4-mini --run-id e3-again
+&amp; $py -m baseline_runner regrade --run-id e3-again</pre>
+  <h3>Check the project</h3>
+  <pre data-copy>&amp; $py -I tools\run_checks.py
+&amp; $py -m pytest</pre>
+</section>
+
+<section id="files">
+  <div class="eyebrow">10. Map</div>
+  <h2>Where is what</h2>
+  <div class="files">UNI-Project/
+  CLAUDE.md  README.md  pytest.ini
+  source/        <i>the proposal (Persian), the source of truth</i>
+  docs/          <i>final_report, baseline_report, model_review, operator_guide, unit_testing_rules, ...</i>
+  study_notes/   <i>a plain-words explanation of every step</i>
+  case_study/    <i>the city: documents, issues, people, answer key</i>
+  registry/  scope/  glossary/  metrics/
+  models/  prompts/  experiments/
+  baseline_runner/  tests/  scripts/  results/
+  tools/run_checks.py   <i>six checkers, run before and after every change</i></div>
+  <div class="note"><b>Start reading here:</b> <code>study_notes/00_start_here.md</code>, then <code>docs/final_report.md</code>.</div>
+</section>
+</main>
+</div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const el = (t, props={}, html="") => Object.assign(document.createElement(t), props, html ? {innerHTML: html} : {});
+
+/* theme */
+(function(){
+  let t = null; try{ t = localStorage.getItem("theme"); }catch(e){}
+  if(t) document.documentElement.setAttribute("data-theme", t);
+  $("#themeBtn").onclick = () => {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = document.documentElement.getAttribute("data-theme") || (dark ? "dark" : "light");
+    const nxt = cur === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", nxt);
+    try{ localStorage.setItem("theme", nxt); }catch(e){}
+  };
+})();
+
+/* side nav highlight */
+const links = [...document.querySelectorAll("nav.side a")];
+const secs = links.map(a => $(a.getAttribute("href")));
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if(e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id));
+}), {rootMargin:"-30% 0px -60% 0px"});
+secs.forEach(sec => io.observe(sec));
+
+/* org tree */
+const nodes = {
+  N0:{name:"City Council", layer:0, files:3, docs:"D01 budget, D02 strategy 2030, D03 priorities memo", q:3, ex:"Q14: What is the total city budget? 480 million EUR.", term:false},
+  N1:{name:"Transport Dept", layer:1, files:3, docs:"D04 policy, D05 fleet budget, D06 air quality", q:2, ex:"Q17: Is the NO2 target reached? No: 39 against a target of 35.", term:false},
+  N2:{name:"Water Dept", layer:1, files:2, docs:"D07 water quality standards, D08 annual report", q:1, ex:"Q19: Current water loss and target? 22% now, 12% by 2030.", term:false},
+  N3:{name:"Housing Dept", layer:1, files:1, docs:"D09 quarterly summary (the only document)", q:2, ex:"Q24: Who heads procurement? Insufficient knowledge: the inside of a terminal node is not modeled.", term:true},
+  N4:{name:"Transit Agency", layer:2, files:5, docs:"D10 fleet inventory v1 and v2, D12 shift rules and its copy, D13 maintenance", q:5, ex:"Q01: How many buses now? 135 (version 2). Version 1 says 120.", term:false},
+  N5:{name:"Water Utility", layer:2, files:1, docs:"D14 leak statistics (the only document)", q:1, ex:"Q20: Leaks in the first half of 2025? 412.", term:true},
+  N6:{name:"Bus Network Project", layer:3, files:7, docs:"D11 ridership, D15 redesign, D16 survey, D17 pilot report, D18 complaints, D19 minutes (scanned), D20 cost", q:12, ex:"Q06: Which route is the busiest? The sources conflict: D11 says Route 12, D16 says Route 7.", term:false}
+};
+function showNode(id){
+  document.querySelectorAll(".node").forEach(n => n.classList.toggle("sel", n.dataset.n === id));
+  const n = nodes[id];
+  $("#nodeInfo").innerHTML = `<span class="tag acc">${id} · layer ${n.layer}</span> ${n.term ? '<span class="tag warn">terminal node</span>' : ""}
+    <h3 style="margin-top:.6rem">${n.name}</h3>
+    <p><b>${n.files}</b> file${n.files>1?"s":""}: ${n.docs}.</p>
+    <p><b>${n.q}</b> test question${n.q>1?"s":""} are asked here.</p>
+    <p style="color:var(--muted)">${n.ex}</p>`;
+}
+document.querySelectorAll(".node").forEach(n => n.onclick = () => showNode(n.dataset.n));
+showNode("N6");
+
+/* journey */
+const examples = {
+  q01:{label:"Q01: a version trap", node:"N4", q:"How many buses does the Transit Agency have now?", ok:true,
+    retrieved:["D10_bus_fleet_inventory_v1","D10_bus_fleet_inventory_v2","D13_maintenance_schedule_2025"],
+    wrong:[],
+    answer:"135 buses [D10_bus_fleet_inventory_v2].",
+    verdict:'<span class="tag good">correct</span> The old version was retrieved too, but the model chose version 2 and cited it.'},
+  q06:{label:"Q06: a contradiction", node:"N6", q:"Which route is the busiest?", ok:false,
+    retrieved:["D11_ridership_report_H1_2025","D16_passenger_survey_2025","D15_route_redesign_proposal"],
+    wrong:[],
+    answer:"Route 12 [D11_ridership_report_H1_2025]",
+    verdict:'<span class="tag bad">fails</span> Both sources were found, but the model picked one. A correct answer says the sources disagree: D11 says Route 12, D16 says Route 7.'},
+  q22:{label:"Q22: the node boundary", node:"N6", q:"What is the allowed chlorine residual in drinking water?", ok:true,
+    retrieved:["D20_cost_estimate","D19_meeting_minutes_2025-06-18","D19_meeting_minutes_2025-06-18"],
+    wrong:["D07_water_quality_standards"],
+    answer:"Insufficient knowledge.",
+    verdict:'<span class="tag good">correct</span> The answer exists in the Water Dept (D07), but the bus project can never see it, so refusing is right.'}
+};
+let ex = "q01", stepI = 0;
+const steps = [
+  {t:"Ask", d:s => `<p>The question is asked at node <b>${s.node}</b>.</p><p style="font-size:1.15rem">"${s.q}"</p>`},
+  {t:"Embed", d:s => `<p>The embedding model turns the question into a list of numbers. All 35 chunks of the documents were turned into lists earlier. For this model the query needs its own prefix, from the model card.</p><span class="chip">Instruct: Given a web search query, retrieve relevant passages that answer the query</span>`},
+  {t:"Search in the node", d:s => `<p>Compare the question's numbers with every chunk of <b>${s.node} only</b>, and keep the 3 closest. A chunk of another node is never even considered.</p>${s.retrieved.map(r=>`<span class="chip ok">${r}</span>`).join("")}${s.wrong.length?`<p style="margin-top:.6rem">Never returned, because it belongs to another node:</p>${s.wrong.map(r=>`<span class="chip no">${r}</span>`).join("")}`:""}`},
+  {t:"Prompt", d:s => `<p>The 3 chunks and the question go into a fixed, versioned prompt.</p><pre style="margin:.3rem 0">Use only the documents below.
+Cite the file in square brackets.
+If the answer is not there, reply exactly: Insufficient knowledge.
+Documents: [file] text ...
+Question: ${s.q}</pre>`},
+  {t:"Answer", d:s => `<p>The LLM (phi4-mini) writes:</p><pre style="margin:.3rem 0">${s.answer}</pre>`},
+  {t:"Grade", d:s => `<p>The rules from the answer key check the facts, the refusal phrase, and the citations.</p><p>${s.verdict}</p>`}
+];
+function drawJourney(){
+  const s = examples[ex];
+  $("#flow").innerHTML = "";
+  steps.forEach((st,i) => {
+    const b = el("button",{className:"step "+(i===stepI?"on":i<stepI?"done":"")},`<b>${i+1}. ${st.t}</b>`);
+    b.onclick = () => {stepI=i; drawJourney();};
+    $("#flow").append(b);
+  });
+  $("#stage").innerHTML = steps[stepI].d(s);
+  $("#prev").disabled = stepI===0; $("#next").disabled = stepI===steps.length-1;
+}
+Object.entries(examples).forEach(([k,v]) => {
+  const b = el("button",{textContent:v.label,className:k===ex?"on":""});
+  b.onclick = () => {ex=k;stepI=0;[...$("#exTabs").children].forEach(c=>c.classList.toggle("on",c===b));drawJourney();};
+  $("#exTabs").append(b);
+});
+$("#prev").onclick = () => {stepI=Math.max(0,stepI-1);drawJourney();};
+$("#next").onclick = () => {stepI=Math.min(steps.length-1,stepI+1);drawJourney();};
+drawJourney();
+
+/* grading demo */
+const demos = [
+  ["25", true], ["About 25 buses are electric.", true], ["25 of the 135 buses", true], ["32", false], ["Twenty-five", false, "a right answer in other words: a false negative"]
+];
+$("#gradeDemo").innerHTML = '<div class="scroll"><table><tr><th>Answer</th><th>Verdict</th><th>Why</th></tr>' + demos.map(d =>
+  `<tr><td><code>${d[0]}</code></td><td><span class="tag ${d[1]?"good":"bad"}">${d[1]?"correct":"wrong"}</span></td><td>${d[2]||(d[1]?"the fact 25 is inside":"the fact 25 is missing")}</td></tr>`).join("") + "</table></div>";
+
+/* hard rules + objectives */
+const hard = [["H01","A node answers only from its own documents."],["H02","One root; each layer is its parent's layer plus 1."],["H03","Each knowledge item has exactly one active version."],["H04","An update adds a version and never deletes an old one."],["H05","A package scoring under the judge threshold is never sent up."],["H06","The system runs with the network off."],["H07","Issue status and progress follow fixed rules."],["H08","The ranking of the 7 issues is the same on every run."],["H09","Every answer has a citation, or says insufficient knowledge."],["H10","A terminal node has one summary document and no children."]];
+$("#hardTable").innerHTML = "<tr><th>ID</th><th>Rule</th></tr>" + hard.map(h=>`<tr><td><code>${h[0]}</code></td><td>${h[1]}</td></tr>`).join("");
+const objs = [["O1","Cited answers"],["O2","Knowledge lifecycle"],["O3","Organization model"],["O4","Issues"],["O5","Projects, priorities and gaps"],["O6","Transfer and judge"],["O7","Engineering foundations"],["O8","RFP (built last)"]];
+$("#objs").innerHTML = objs.map(o=>`<div class="card"><span class="tag acc">${o[0]}</span><p style="margin:.4rem 0 0"><b>${o[1]}</b></p></div>`).join("");
+
+/* memory */
+const FREE = 2.9;
+const mem = [
+  ["Embedding","nomic-embed-text",0.274],["Embedding","embeddinggemma:300m",0.622],["Embedding","qwen3-embedding:0.6b",0.639],
+  ["LLM","qwen3:1.7b",1.4],["LLM","llama3.2:3b",2.0],["LLM","qwen3:4b",2.5],["LLM","phi4-mini:3.8b",2.5],["LLM","qwen3.5:2b",2.7],["LLM","gemma3:4b",3.4],
+  ["Vision","glm-ocr:q8_0",1.8],["Vision","qwen3-vl:2b",1.9],["Vision","qwen2.5vl:3b",3.2]
+];
+let memTab = "All";
+function drawMem(){
+  const max = 4.5;
+  $("#memBars").innerHTML = mem.filter(m=>memTab==="All"||m[0]===memTab).map(m=>{
+    const need = m[2]*1.2, cls = need<=FREE?"":need<=FREE*1.2?"over":"no";
+    return `<div class="bar"><span>${m[1]}</span><div class="track"><div class="fill ${cls}" style="width:${Math.min(need/max*100,100)}%"></div><div class="limit" style="left:${FREE/max*100}%"></div></div><span style="text-align:right">${need.toFixed(1)} GB</span></div>`;
+  }).join("");
+}
+["All","Embedding","LLM","Vision"].forEach(t=>{
+  const b = el("button",{textContent:t,className:t===memTab?"on":""});
+  b.onclick=()=>{memTab=t;[...$("#memTabs").children].forEach(c=>c.classList.toggle("on",c===b));drawMem();};
+  $("#memTabs").append(b);
+});
+drawMem();
+
+/* results */
+const T = (head, rows, cls=[]) => `<div class="scroll"><table><tr>${head.map((h,i)=>`<th class="${i?'n':''}">${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'n':''}">${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
+const res = {
+  "E1 Retrieval":{t:"Which embedding model finds the right documents?", b:()=>T(["Model (80-word chunks)","Hit at k=1","Hit at k=3","Precision at k=3","Recall at k=3"],[["nomic-embed-text","0.91","1.00","0.53","1.00"],["embeddinggemma:300m","0.96","1.00","0.59","1.00"],["qwen3-embedding:0.6b","0.91","1.00","0.57","1.00"]])+`<p>All three find every source in the top 3. Precision cannot reach 1, because 3 chunks come back for questions with one source. The test is too small to separate them, so <code>qwen3-embedding</code> was chosen for its long context and many languages.</p>`},
+  "E2 and E3 Answers":{t:"phi4-mini, with right files given (E2) and with real retrieval (E3)", b:()=>T(["Metric","Right files","Real retrieval"],[["Answer correct (M01)","0.96","0.91"],["Citations valid (M02)","0.96","0.87"],["Correct refusal (M03)","not asked","1.00"],["False refusal (M04)","0.00","0.00"],["Version handling (M09)","1.00","1.00"],["Duplicate cited once (M12)","1.00","0.00"],["Median time per question","0.64 s","0.70 s"]])+`<p>Failures read one by one: Q06 picks one side of the contradiction. Q03 cites the duplicate twice. Q04 and Q08 give the right answer with no citation.</p>`},
+  "E4 Scanned page":{t:"Can a vision model read the minutes D19?", b:()=>T(["Model","Page","Facts found","Time"],[["glm-ocr:q8_0","clean","7 of 7","73 s"],["glm-ocr:q8_0","turned and blurred","7 of 7","60 s"],["qwen3-vl:2b","clean","5 of 7","20 s"],["qwen3-vl:2b","turned and blurred","7 of 7","11 s"]])+`<p><code>glm-ocr</code> copied the page exactly. <code>qwen3-vl</code> was fast but stopped early on the clean page, which is unreliability, not a reading limit. A drawn page is easier than a real scan.</p>`},
+  "E5 Judge probe":{t:"Can a small model tell right from wrong?", b:()=>T(["Judge","Setting","Accuracy","Repeatability"],[["phi4-mini","fixed","0.98","1.00"],["phi4-mini","sampled","0.98","1.00"],["qwen3:4b","fixed","1.00","0.98"],["qwen3:4b","sampled","1.00","1.00"]])+`<p>Both caught the two reversed answers that the string rule accepts. But the reference was the expected answer itself, the easiest case. The real check is on transfer packages later.</p>`},
+  "E6 Speed":{t:"Speed and memory as the prompt grows (phi4-mini)", b:()=>T(["Chunks","Prompt tokens","First token","Tokens per second"],[["1","249","0.14 s","35.9"],["3","498","0.27 s","35.9"],["6","816","0.44 s","34.4"],["12","1442","0.80 s","30.0"]])+`<p>Time to first token grows about six times from 1 to 12 chunks, generation slows about 16 percent, and GPU memory in use stays between 3.2 and 3.4 GB of 4 GB. The laptop is not near its limit for one question.</p>`}
+};
+let resTab = Object.keys(res)[0];
+function drawRes(){ $("#resBody").innerHTML = `<h3 style="margin-top:0">${res[resTab].t}</h3>` + res[resTab].b(); }
+Object.keys(res).forEach(k=>{
+  const b = el("button",{textContent:k,className:k===resTab?"on":""});
+  b.onclick=()=>{resTab=k;[...$("#resTabs").children].forEach(c=>c.classList.toggle("on",c===b));drawRes();};
+  $("#resTabs").append(b);
+});
+drawRes();
+
+/* roadmap */
+const ph = [
+ [1,"Project start and domain discovery","done"],[2,"Offline models and technical baseline","done"],[3,"DDD architecture and domain model","next"],[4,"Document ingestion","next"],
+ [5,"Versioning, chunking, duplicate detection",""],[6,"Node, layer and hierarchy module",""],[7,"Issue and sub-issue modelling",""],[8,"RAG retrieval core and question answering",""],
+ [9,"Executor analysis and Issue-Knowledge-Executor relations",""],[10,"LLM as a judge and quality control",""],[11,"Cyclic node processing and upward transfer",""],[12,"Project, research, achievement and gap tracking",""],
+ [13,"RFP generation and proposal management",""],[14,"Prompt testing, model tuning, sample set evaluation",""],[15,"Completing unit tests and technical hardening",""],[16,"Final wrap-up, documentation and presentation",""]
+];
+$("#phases").innerHTML = ph.map(p=>`<div class="phase ${p[2]}"><span class="tag ${p[2]==='done'?'good':p[2]==='next'?'acc':''}">Part ${p[0]}${p[2]==='done'?' · done':p[2]==='next'?' · next':''}</span><b style="margin-top:.4rem">${p[1]}</b></div>`).join("");
+
+/* copy buttons */
+document.querySelectorAll("pre[data-copy]").forEach(pre=>{
+  const text = pre.textContent;
+  const b = el("button",{textContent:"Copy",className:"btn copy"});
+  b.onclick = () => {
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200);}).catch(()=>{b.textContent="Select and copy";});
+  };
+  pre.append(b);
+});
+</script>
+</body>
+</html>
