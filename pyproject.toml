@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag_core"
+version = "0.1.0"
+description = "Offline hierarchical RAG core"
+dependencies = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools]
+packages = ["rag_core", "rag_core.infrastructure", "rag_core.ingestion", "rag_core.knowledge", "rag_core.models", "rag_core.organization", "rag_core.rag", "rag_core.shared", "rag_core.workflows", "rag_core.issues"]
