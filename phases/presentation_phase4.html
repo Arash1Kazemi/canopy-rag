@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 4 Deep Dive: Document Ingestion Foundation</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:2.5rem 1.5rem;text-align:center}
+header h1{font-size:2.2rem;margin:0 0 .4rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.1rem;max-width:60ch;margin:0 auto}
+.container{max-width:960px;margin:2rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.2rem .7rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.6rem;margin-top:0;color:var(--ink)}
+h3{font-size:1.15rem;margin:1.5rem 0 .5rem;color:var(--ink)}
+p{margin:.6rem 0}
+ul{margin:.6rem 0;padding-left:1.5rem}
+li{margin:.3rem 0}
+code{background:var(--code);padding:.15rem .45rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line)}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1.2rem 0}
+.back{display:inline-block;margin-bottom:1.5rem;text-decoration:none;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">Phase 4 Deep Dive</span>
+  <h1>Document Ingestion Foundation</h1>
+  <p>Exact architecture, codebase changes, and execution details for Phase 4</p>
+</header>
+
+<div class="container">
+  <a href="presentation_phases_4_6.html" class="back">← Back to Overview</a>
+
+  <div class="card">
+    <h2>1. The Problem & Purpose</h2>
+    <p>In Phase 2, the baseline runner used static, pre-processed Markdown files (`case_study/documents/`). In a real enterprise or municipal environment, data arrives as messy Word documents (<code>.doc</code>, <code>.docx</code>), PDFs with selectable text, and image-only scanned PDFs (like meeting minutes or archived paperwork).</p>
+    <p><strong>Purpose of Phase 4:</strong> Build a robust ingestion pipeline that registers files, extracts text across multiple formats, detects scanned pages, assigns metadata fingerprints, chunks text deterministically, and formats source citations.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Exact Code Structure & Files Added</h2>
+    <p>The implementation lives primarily inside <code>rag_core/ingestion/</code> and <code>rag_core/rag/</code>:</p>
+    <ul>
+      <li><code>rag_core/ingestion/extractors.py</code> — Multi-format extractors (`.doc`, `.docx`, `.pdf`, `.md`) with LVM fallback.</li>
+      <li><code>rag_core/ingestion/png.py</code> — Handles rendering PDF pages to PNG when text density is too low (&lt; 5 words/page).</li>
+      <li><code>rag_core/ingestion/service.py</code> — Orchestrates the full ingestion flow (registration, extraction, chunking, storage).</li>
+      <li><code>rag_core/knowledge/metadata.py</code> — Defines <code>MetadataRecord</code> schema (SHA-256 hashes, timestamps, source location).</li>
+      <li><code>rag_core/knowledge/chunking.py</code> — Implements <code>words80</code> (Phase 2 exact baseline) and <code>sections80</code> policies.</li>
+      <li><code>rag_core/rag/citation.py</code> — Maps answer stems back to source chunks and pages.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>3. Deep Dive into Technical Mechanisms</h2>
+    
+    <h3>A. PDF vs. Scanned PDF Detection</h3>
+    <p>When ingesting a PDF, the engine checks the average word count per page. If a page has fewer than 5 words, it is classified as a <strong>scan</strong>, rendered into a PNG image, and sent to the local Vision Language Model (LVM: <code>glm-ocr</code>) to read the text.</p>
+
+    <h3>B. Deterministic Chunking (<code>words80</code> vs <code>sections80</code>)</h3>
+    <ul>
+      <li><strong><code>words80</code>:</strong> 80-word sliding window with a 15-word overlap. Guaranteed to match Phase 2 baseline chunk texts exactly so experimental metrics remain comparable.</li>
+      <li><strong><code>sections80</code>:</strong> Heading-aware chunking that never crosses markdown headers.</li>
+    </ul>
+
+    <h3>C. Citation Model (<code>rag_core/rag/citation.py</code>)</h3>
+    <p>Small LLMs struggle with long, complex chunk IDs. The citation model outputs short stems (e.g., <code>[D10_bus_fleet_inventory_v2]</code>) while mapping the internal database references precisely.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. How to Run Phase 4 (CLI Commands)</h2>
+    <p>You can execute ingestion directly via python:</p>
+    <pre><code># Ingest the entire city case study (words80 policy)
+python -m rag_core ingest-case-study --run-id phase4-words80
+
+# Ingest with sections80 policy
+python -m rag_core ingest-case-study --run-id phase4-sections80 --policy sections80
+
+# Ingest a single file manually
+python -m rag_core ingest-file path/to/doc.pdf --item D19 --node N6 --version 2 --title "Minutes"
+</code></pre>
+    <div class="highlight">
+      <strong>Verification:</strong> Run <code>python tools/run_checks.py</code> and <code>pytest tests/test_core_ingestion.py</code> to verify all tests pass.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

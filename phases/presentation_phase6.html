@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 6 Deep Dive: Organizational Hierarchy & Layers</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:2.5rem 1.5rem;text-align:center}
+header h1{font-size:2.2rem;margin:0 0 .4rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.1rem;max-width:60ch;margin:0 auto}
+.container{max-width:960px;margin:2rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.2rem .7rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.6rem;margin-top:0;color:var(--ink)}
+h3{font-size:1.15rem;margin:1.5rem 0 .5rem;color:var(--ink)}
+p{margin:.6rem 0}
+ul{margin:.6rem 0;padding-left:1.5rem}
+li{margin:.3rem 0}
+code{background:var(--code);padding:.15rem .45rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line)}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1.2rem 0}
+.back{display:inline-block;margin-bottom:1.5rem;text-decoration:none;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">Phase 6 Deep Dive</span>
+  <h1>Organizational Hierarchy & Layer Registry</h1>
+  <p>Exact architecture, codebase changes, and execution details for Phase 6</p>
+</header>
+
+<div class="container">
+  <a href="presentation_phases_4_6.html" class="back">← Back to Overview</a>
+
+  <div class="card">
+    <h2>1. The Problem & Purpose</h2>
+    <p>A municipal RAG system cannot treat all documents and departments as flat. Information flows hierarchically from field units up to city departments and the city council. Phase 6 models the municipal organization as a strict <strong>tree of nodes and layers</strong> with hard invariants enforced by domain workflows.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Exact Code Structure & Files Added</h2>
+    <p>Phase 6 implementation spans organizational models, registries, and workflows:</p>
+    <ul>
+      <li><code>rag_core/organization/model.py</code> — The <code>Hierarchy</code> aggregate (manages nodes, parent/child links, terminal flags).</li>
+      <li><code>rag_core/shared/kernel.py</code> — Defines the <code>TransferRule</code> value object (detail levels, judge scores, confidentiality).</li>
+      <li><code>rag_core/workflows/organization.py</code> — State-guarding workflows (`OrganizationService`).</li>
+      <li><code>rag_core/infrastructure/registry_csv.py</code> & <code>sqlite_hierarchy.py</code> — Repositories for loading and persisting hierarchy and layer rules.</li>
+      <li><code>registry/layer_registry.csv</code> & <code>registry/node_layer_registry.csv</code> — The source-of-truth registry files.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>3. Deep Dive into Technical Mechanisms</h2>
+    
+    <h3>A. Strict Tree Invariants (Hard Rules)</h3>
+    <ul>
+      <li>There is exactly **one root node** (City Council).</li>
+      <li>A **terminal node** (black box) cannot have children.</li>
+      <li>A node cannot be moved under itself or its own descendants (preventing circular loops).</li>
+    </ul>
+
+    <h3>B. Layer Transfer Rules (<code>TransferRule</code>)</h3>
+    <p>Each of the 4 layers defines a rule for what it requires when receiving knowledge from below (e.g., minimum judge score, required topics, executive detail level).</p>
+
+    <h3>C. Use-Case Workflows (Guard Clauses)</h3>
+    <p><code>OrganizationService</code> refuses any transaction (defining a node, moving a node, making a node terminal) if it violates any hierarchical or document-availability invariant.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. How to Run Phase 6 (CLI Commands)</h2>
+    <pre><code># Display current hierarchy and transfer rules
+python -m rag_core show-hierarchy
+
+# Initialize hierarchy database from CSV registries
+python -m rag_core init-hierarchy
+
+# Define a new node under a parent
+python -m rag_core define-node --id N7 --name "New Dept" --parent N4 --field "Transport"
+
+# Move a node under a new parent
+python -m rag_core move-node --id N6 --parent N5
+
+# Toggle terminal status (black box mode)
+python -m rag_core set-terminal --id N7 --knowledge-db results/ingestion/phase5-words80/knowledge.sqlite
+</code></pre>
+    <div class="highlight">
+      <strong>Verification:</strong> Run <code>pytest tests/test_core_hierarchy.py tests/test_core_workflows.py</code> to verify all hierarchical rule enforcement.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

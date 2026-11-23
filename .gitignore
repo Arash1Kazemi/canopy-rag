@@ -1,3 +1,51 @@
-/data/
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Pytest
 .pytest_cache/
+.mypy_cache/
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/*
+
+# Databases & Runtime Outputs
+/data/
+*.sqlite
+*.db
+results/ingestion/*
+!results/ingestion/.gitkeep
+results/duplicates/*
+!results/duplicates/.gitkeep
+
+# IDEs & OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

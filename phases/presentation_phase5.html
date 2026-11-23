@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 5 Deep Dive: Versioning & Deduplication</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:2.5rem 1.5rem;text-align:center}
+header h1{font-size:2.2rem;margin:0 0 .4rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.1rem;max-width:60ch;margin:0 auto}
+.container{max-width:960px;margin:2rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.2rem .7rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.6rem;margin-top:0;color:var(--ink)}
+h3{font-size:1.15rem;margin:1.5rem 0 .5rem;color:var(--ink)}
+p{margin:.6rem 0}
+ul{margin:.6rem 0;padding-left:1.5rem}
+li{margin:.3rem 0}
+code{background:var(--code);padding:.15rem .45rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line)}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1.2rem 0}
+.back{display:inline-block;margin-bottom:1.5rem;text-decoration:none;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">Phase 5 Deep Dive</span>
+  <h1>Versioning, Chunk Life Cycle & Deduplication</h1>
+  <p>Exact architecture, codebase changes, and execution details for Phase 5</p>
+</header>
+
+<div class="container">
+  <a href="presentation_phases_4_6.html" class="back">← Back to Overview</a>
+
+  <div class="card">
+    <h2>1. The Problem & Purpose</h2>
+    <p>In Phase 2 baseline runs, planted problems failed as expected: when multiple copies or versions of a document existed (e.g., old vs. new bus fleet inventories), the model cited both or got confused by contradictions. Phase 5 solves this by introducing <strong>knowledge versioning</strong>, <strong>chunk life cycles</strong>, and <strong>duplicate/overlap detection</strong>.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Exact Code Structure & Files Added</h2>
+    <p>Phase 5 modules live in <code>rag_core/knowledge/</code>:</p>
+    <ul>
+      <li><code>rag_core/knowledge/changes.py</code> — Computes structured change summaries between document versions (using Python's <code>difflib</code>).</li>
+      <li><code>rag_core/knowledge/lifecycle.py</code> — Tracks chunk states across the pipeline: <code>created</code> ➔ <code>embedded</code> ➔ <code>checked</code> ➔ <code>indexed</code>.</li>
+      <li><code>rag_core/knowledge/duplicates.py</code> — Detects exact matches (SHA-256 fingerprints), near-duplicates, and phrase overlaps.</li>
+      <li><code>scripts/duplicate_experiment.py</code> — Measures duplicate behavior across parameter policies.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>3. Deep Dive into Technical Mechanisms</h2>
+    
+    <h3>A. Knowledge Versioning & Active Versions</h3>
+    <p>When D10 version 2 is ingested, version 1 is retained in storage for audit trails, but only version 2 is marked <strong>active</strong>. Retrieval queries automatically filter out inactive versions.</p>
+
+    <h3>B. Chunk Life Cycle (<code>ChunkStage</code>)</h3>
+    <p>Chunks move through explicit states. A chunk is strictly prohibited from being retrieved unless its stage is <code>indexed</code> AND its parent version is <code>active</code>.</p>
+
+    <h3>C. Three-Tier Duplicate Detection (Advice Only)</h3>
+    <ul>
+      <li><strong>Exact:</strong> Same text fingerprint (skipped automatically at ingestion so duplicate files are never indexed twice).</li>
+      <li><strong>Near Duplicate:</strong> High word-group similarity score (default threshold: 0.8).</li>
+      <li><strong>Overlap:</strong> Shared contiguous phrase groups between distinct documents.</li>
+    </ul>
+    <p><em>Crucial Rule:</em> Duplicate and overlap detection produces advisory logs; human experts make the final decision.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. How to Run Phase 5 (CLI Commands)</h2>
+    <pre><code># Run ingestion with duplicate detection enabled
+python -m rag_core ingest-case-study --detect-duplicates --run-id phase5-run
+
+# Run the duplicate scan on an existing knowledge database
+python -m rag_core find-duplicates --db results/ingestion/phase5-run/knowledge.sqlite
+</code></pre>
+    <div class="highlight">
+      <strong>Verification:</strong> Run <code>pytest tests/test_core_duplicates.py tests/test_core_lifecycle.py</code> to test all versioning and duplication rules.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

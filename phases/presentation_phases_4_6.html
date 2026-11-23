@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline Hierarchical RAG: Phases 4, 5 & 6 Presentation</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1f2328; --muted:#5d6570; --line:#e3e0d8;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --good:#1f7a4d; --good-soft:#e1f4ea;
+  --warn:#9a5b00; --warn-soft:#fdf0d8; --bad:#a32d2d; --bad-soft:#fbe6e6;
+  --code:#f0eee8; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --card:#1c1f25; --ink:#e8e8e4; --muted:#a2a9b3; --line:#2c3038;
+    --accent:#8ea2ff; --accent-soft:#232a4a; --good:#6fd39e; --good-soft:#17332a;
+    --warn:#f0b45a; --warn-soft:#3a2d12; --bad:#f19a9a; --bad-soft:#3b1d1d;
+    --code:#23262d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:2.5rem 1.5rem;text-align:center}
+header h1{font-size:2.4rem;margin:0 0 .5rem;color:var(--ink)}
+header p{color:var(--muted);font-size:1.1rem;max-width:60ch;margin:0 auto}
+.container{max-width:960px;margin:2rem auto;padding:0 1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.2rem .7rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:.8rem}
+h2{font-size:1.8rem;margin-top:0;color:var(--ink);display:flex;align-items:center;gap:.6rem}
+h3{font-size:1.2rem;margin:1.5rem 0 .5rem;color:var(--ink)}
+p{margin:.6rem 0}
+ul{margin:.6rem 0;padding-left:1.5rem}
+li{margin:.3rem 0}
+code{background:var(--code);padding:.15rem .45rem;border-radius:6px;font:.9em ui-monospace,Consolas,monospace}
+pre{background:var(--code);padding:1rem;border-radius:8px;overflow-x:auto;font:.88em ui-monospace,Consolas,monospace;border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin:1.5rem 0}
+.subcard{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:1.2rem}
+.subcard h4{margin:0 0 .4rem;color:var(--accent);font-size:1.05rem}
+.highlight{border-left:4px solid var(--accent);background:var(--accent-soft);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1.2rem 0}
+footer{text-align:center;padding:3rem 0;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Offline Hierarchical RAG Core</h1>
+  <p>Detailed Technical Breakdown for Class Presentation: Phases 4, 5 & 6</p>
+</header>
+
+<div class="container">
+
+  <!-- OVERVIEW -->
+  <div class="card">
+    <span class="badge">Executive Summary</span>
+    <h2>Project Context & Milestone</h2>
+    <p>Up to Phase 3, we established the Domain-Driven Design (DDD) architecture and core bounded contexts. <strong>Phases 4, 5, and 6</strong> represent the core functional implementation of the knowledge pipeline, data evolution tracking, and organizational governance.</p>
+    <div class="grid">
+      <div class="subcard">
+        <h4>Phase 4: Ingestion</h4>
+        <p>Turning raw documents (PDF, DOC, DOCX) into structured, metadata-rich chunks with citation support.</p>
+      </div>
+      <div class="subcard">
+        <h4>Phase 5: Versioning & Dupes</h4>
+        <p>Tracking document changes, chunk life cycles, and detecting exact, near, and overlapping duplicates.</p>
+      </div>
+      <div class="subcard">
+        <h4>Phase 6: Hierarchy & Layers</h4>
+        <p>Managing the municipal tree structure, layer registries, transfer rules, and state-guarding workflows.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="card">
+    <span class="badge">Phase 4</span>
+    <h2>Document Ingestion Foundation</h2>
+    
+    <h3>1. What Was the Purpose?</h3>
+    <p>In Phase 2, we used flat, pre-processed markdown files. Real-world systems ingest messy multi-format files (PDFs, Word docs, scanned pages). Phase 4 built the ingestion engine to parse files, extract text, tag metadata, and assign traceable source citations.</p>
+
+    <h3>2. What We Built & What Changed</h3>
+    <ul>
+      <li><strong>Multi-Format Extractors (<code>rag_core/ingestion/extractors.py</code>):</strong> Native readers for DOC, DOCX, and PDF. If a PDF has low text density (scanned pages), it automatically triggers local LVM assistance (<code>glm-ocr</code> via <code>rag_core/ingestion/png.py</code>).</li>
+      <li><strong>Metadata Schema (<code>rag_core/knowledge/metadata.py</code>):</strong> Every knowledge version carries strict metadata records (author, date, fingerprint, source location).</li>
+      <li><strong>Chunking Policies (<code>rag_core/knowledge/chunking.py</code>):</strong> Implemented <code>words80</code> (80-word sliding window with 15-word overlap, matching Phase 2 baseline) and <code>sections80</code> (heading-aware chunking).</li>
+      <li><strong>Citation Model (<code>rag_core/rag/citation.py</code>):</strong> Generates clean source citations (e.g., <code>[D10_bus_fleet_inventory_v2]</code>) tied back to exact chunk IDs and page numbers.</li>
+    </ul>
+
+    <div class="highlight">
+      <strong>Key Achievement:</strong> A robust CLI command <code>python -m rag_core ingest-case-study</code> that ingests 20+ case study items into SQLite and exports structured CSV catalogs.
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="card">
+    <span class="badge">Phase 5</span>
+    <h2>Versioning, Chunk Life Cycle & Duplicate Detection</h2>
+    
+    <h3>1. What Was the Purpose?</h3>
+    <p>Real documents evolve over time, get copied, or overlap in content. Phase 5 answers three critical operational questions: <em>What changed between versions? What can be retrieved right now? Which documents repeat each other?</em></p>
+
+    <h3>2. What We Built & What Changed</h3>
+    <ul>
+      <li><strong>Change Summary (<code>rag_core/knowledge/changes.py</code>):</strong> Computes textual diffs between document versions so Contradictions and updates are explicitly understood.</li>
+      <li><strong>Chunk Life Cycle (<code>rag_core/knowledge/lifecycle.py</code>):</strong> Manages chunk stages (<code>created</code> ➔ <code>embedded</code> ➔ <code>checked</code> ➔ <code>indexed</code>), ensuring retired or superseded chunks (like old bus fleet inventories) are excluded from active retrieval.</li>
+      <li><strong>Duplicate & Overlap Detector (<code>rag_core/knowledge/duplicates.py</code>):</strong> Detects exact matches (via SHA-256 text fingerprinting), near duplicates, and shared phrase overlaps. <em>Note: Gives advice; human experts decide.</em></li>
+    </ul>
+
+    <pre><code># Run duplicate detection via CLI:
+python -m rag_core find-duplicates --db results/ingestion/phase5-words80/knowledge.sqlite</code></pre>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="card">
+    <span class="badge">Phase 6</span>
+    <h2>Organizational Hierarchy & Layer Registry</h2>
+    
+    <h3>1. What Was the Purpose?</h3>
+    <p>The system serves a municipal organization (City Council, Transport Dept, Water Dept, etc.) arranged in a tree hierarchy across 4 layers. Phase 6 makes this organizational tree <strong>usable and mutable</strong> under strict domain rules.</p>
+
+    <h3>2. What We Built & What Changed</h3>
+    <ul>
+      <li><strong>Hierarchy Aggregate (<code>rag_core/organization/model.py</code>):</strong> Manages nodes, parent-child relations, and terminal nodes (black boxes).</li>
+      <li><strong>Layer Registry (<code>registry/layer_registry.csv</code>):</strong> Defines layer roles and `TransferRule` parameters (detail level, minimum judge score, confidentiality).</li>
+      <li><strong>Workflows & Guard Clauses (<code>rag_core/workflows/organization.py</code>):</strong> Implemented use cases: <code>define-node</code>, <code>move-node</code>, <code>set-terminal</code>. If any rule is violated (e.g., moving a node under itself or violating layer constraints), the workflow refuses the transaction.</li>
+      <li><strong>Persistence:</strong> Stored via <code>SqliteHierarchyRepository</code>.</li>
+    </ul>
+
+    <pre><code># Example Hierarchy CLI commands:
+python -m rag_core show-hierarchy
+python -m rag_core set-terminal --id N7 --knowledge-db results/ingestion/phase5-words80/knowledge.sqlite</code></pre>
+  </div>
+
+  <!-- CONCLUSION / STATS -->
+  <div class="card">
+    <span class="badge">Verification & Quality</span>
+    <h2>Current System Status</h2>
+    <p>All implemented features are backed by rigorous automated testing and consistency checks:</p>
+    <ul>
+      <li><strong>328 Passing Unit Tests:</strong> Covering chunking, ingestion, citations, lifecycle, duplicate detection, and hierarchy rules (`tests/`).</li>
+      <li><strong>6/6 Consistency Validators:</strong> Checked via `python tools/run_checks.py` ensuring case study manifests, registries, and metrics remain perfectly aligned.</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  Offline Hierarchical RAG Core · Presentation Notes · Built with Domain-Driven Design (DDD)
+</footer>
+
+</body>
+</html>
