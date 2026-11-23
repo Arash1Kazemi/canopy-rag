@@ -1,7 +1,8 @@
 """Load the case study: the 22 files and the 26 questions. The case study is read-only."""
-import csv
 from dataclasses import dataclass
 from pathlib import Path
+
+from rag_core.infrastructure.project_db import project_rows
 
 from .config import CASE
 
@@ -16,8 +17,7 @@ class SourceFile:
 
 
 def read_csv(path):
-    with Path(path).open(encoding="utf-8", newline="") as f:
-        return list(csv.DictReader(f))
+    return project_rows(path)
 
 
 def load_files(case_dir=CASE):

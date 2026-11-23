@@ -66,7 +66,7 @@ Run from `UNI-Project/` with the project's Python (see `docs/operator_guide.md` 
 
 - `make-samples` writes DOCX and simple PDF copies of five documents into `results/ingestion/samples/`. They are made with the standard library, so they are simpler than files saved by Word. Real files from Word or LibreOffice are still needed (Teammate C).
 - `--documents ... --suffix .docx` ingests the converted copies where they exist and the Markdown files elsewhere. Use a new run id: a converted copy can differ slightly from the Markdown (a DOCX table has no `|---|` line), so in the same database it would be refused as new text under an old version tag (H04).
-- `ingest-file` adds one file to the database in `--out` (a new one is made if the folder is empty), for example a new version of an item. The last command reads the image-only D19 PDF described below.
+- By default, `ingest-file` and `ingest-case-study` read the live hierarchy and save knowledge in the project database. An explicit `--out` selects a separate run database. Pass `--hierarchy-db` to ingest against a separate hierarchy. The last example command reads the image-only D19 PDF described below.
 
 ## The image-only D19 PDF
 

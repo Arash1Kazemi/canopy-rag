@@ -58,17 +58,20 @@ class SqliteHierarchyRepository:
         return hierarchy_from_rows(node_rows, layer_rows)
 
     def save(self, hierarchy):
+        with self.db:
+            self._replace(hierarchy)
+
+    def _replace(self, hierarchy):
+        """Replace the hierarchy inside the caller's transaction."""
         hierarchy.check_complete()
         nodes = [hierarchy.root()] + hierarchy.descendants(hierarchy.root().node_id)    # parents before children
-        with self.db:                                                                    # one transaction: all or nothing
-            self.db.execute("DELETE FROM nodes")
-            self.db.execute("DELETE FROM layers")
-            for layer in hierarchy.layers():
-                if hierarchy.layer_definition(layer.index) is None:
-                    continue                    # a layer that only has nodes has no registry entry to store
+        self.db.execute("DELETE FROM nodes")
+        self.db.execute("DELETE FROM layers")
+        for layer in hierarchy.layers():
+            if hierarchy.layer_definition(layer.index) is not None:
                 self._insert("layers", LAYER_DB_COLUMNS, row_of_layer(layer))
-            for node in nodes:
-                self._insert("nodes", NODE_COLUMNS, row_of_node(node))
+        for node in nodes:
+            self._insert("nodes", NODE_COLUMNS, row_of_node(node))
 
     def close(self):
         self.db.close()

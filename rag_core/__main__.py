@@ -6,8 +6,9 @@
     python -m rag_core make-samples                      DOCX and PDF copies of some case-study files, to test ingestion
     python -m rag_core find-duplicates --db results/ingestion/RUN/knowledge.sqlite    exact, near and overlap findings
 
-    python -m rag_core show-hierarchy [--db FILE]        the layers, the nodes and the transfer rules (from the registry CSVs, or a database)
-    python -m rag_core init-hierarchy [--db FILE]        copy the registry CSVs into a hierarchy database
+    python -m rag_core migrate-db [--db FILE]           import the project datasets into SQLite
+    python -m rag_core show-hierarchy [--db FILE]       show layers, nodes and transfer rules from SQLite
+    python -m rag_core init-hierarchy [--db FILE]       initialize a hierarchy database
     python -m rag_core define-node --id N7 --name "..." --parent N4 --field "..."      add a node under a parent
     python -m rag_core move-node --id N6 --parent N5     give a node (and everything under it) a new parent
     python -m rag_core set-terminal --id N6 --knowledge-db FILE [--off]     make a node a black box, or open it again
@@ -19,10 +20,12 @@ import argparse
 import datetime as dt
 import sys
 from collections import Counter
+from contextlib import closing
 from pathlib import Path
 
 from .infrastructure import csv_export
-from .infrastructure.registry_csv import CsvHierarchyRepository
+from .infrastructure.project_db import database_path, migrate, project_rows
+from .infrastructure.registry_csv import hierarchy_from_rows
 from .infrastructure.sqlite import SqliteKnowledgeRepository
 from .infrastructure.sqlite_hierarchy import SqliteHierarchyRepository
 from .ingestion.case_study import manifest_requests
@@ -38,7 +41,6 @@ CASE = PROJECT / "case_study"
 REGISTRY = PROJECT / "registry" / "node_layer_registry.csv"
 RESULTS = PROJECT / "results" / "ingestion"
 LAYER_REGISTRY = PROJECT / "registry" / "layer_registry.csv"
-HIERARCHY_DB = PROJECT / "results" / "hierarchy" / "hierarchy.sqlite"
 SAMPLE_DOCS = ("D10_bus_fleet_inventory_v2", "D13_maintenance_schedule_2025", "D17_pilot_test_report",
                "D19_meeting_minutes_2025-06-18", "D20_cost_estimate")
 
@@ -67,8 +69,16 @@ def cmd_extractors(args):
 
 
 def run_ingest(args, requests, out):
-    hierarchy = CsvHierarchyRepository(REGISTRY).load()
-    repo = SqliteKnowledgeRepository(out / "knowledge.sqlite")
+    database = migrate()
+    if args.hierarchy_db:
+        database = Path(args.hierarchy_db)
+        if not database.is_file():
+            print(f"no hierarchy database at {database}", file=sys.stderr)
+            return 2
+    with closing(SqliteHierarchyRepository(database)) as hierarchy_repo:
+        hierarchy = hierarchy_repo.load()
+    knowledge_db = out / "knowledge.sqlite" if args.out or getattr(args, "run_id", None) else database_path()
+    repo = SqliteKnowledgeRepository(knowledge_db)
     detector = DuplicateDetector() if args.detect_duplicates else None
     service = IngestionService(hierarchy, repo, make_extractors(args), policy=args.policy, detector=detector)
     results = [service.register(r) for r in requests]
@@ -87,21 +97,19 @@ def run_ingest(args, requests, out):
 
 
 def out_folder(args):
-    return Path(args.out) if args.out else RESULTS / (args.run_id or dt.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    run_id = getattr(args, "run_id", None)
+    return Path(args.out) if args.out else RESULTS / (run_id or dt.datetime.now().strftime("%Y%m%d-%H%M%S"))
 
 
 def cmd_ingest_case_study(args):
-    requests = manifest_requests(CASE, args.documents, args.suffix)
+    requests = manifest_requests(CASE, args.documents, args.suffix, read_rows=project_rows)
     return run_ingest(args, requests, out_folder(args))
 
 
 def cmd_ingest_file(args):
     request = RegistrationRequest(Path(args.path), args.item, args.node, args.version, args.title,
                                   change_reason=args.reason or "")
-    if not args.out:
-        print("give --out: the folder whose knowledge.sqlite gets the new file", file=sys.stderr)
-        return 2
-    return run_ingest(args, [request], Path(args.out))
+    return run_ingest(args, [request], out_folder(args))
 
 
 def cmd_find_duplicates(args):
@@ -150,7 +158,7 @@ def print_hierarchy(h):
 
 
 def hierarchy_repository(args, must_have_data=True):
-    repo = SqliteHierarchyRepository(Path(args.db) if args.db else HIERARCHY_DB)
+    repo = SqliteHierarchyRepository(Path(args.db) if args.db else migrate())
     if must_have_data and repo.is_empty():
         print("this hierarchy database is empty: run init-hierarchy first", file=sys.stderr)
         repo.close()
@@ -159,27 +167,31 @@ def hierarchy_repository(args, must_have_data=True):
 
 
 def cmd_show_hierarchy(args):
-    if args.db:
-        repo = hierarchy_repository(args)
-        if repo is None:
-            return 2
+    repo = hierarchy_repository(args)
+    if repo is None:
+        return 2
+    with closing(repo):
         hierarchy = repo.load()
-        repo.close()
-    else:
-        hierarchy = CsvHierarchyRepository(REGISTRY, LAYER_REGISTRY).load()
     print_hierarchy(hierarchy)
     return 0
 
 
 def cmd_init_hierarchy(args):
+    if not args.db:
+        return cmd_migrate_db(args)
     repo = hierarchy_repository(args, must_have_data=False)
     if not repo.is_empty():
         print("this hierarchy database already has nodes; delete the file to start again", file=sys.stderr)
         repo.close()
         return 2
-    repo.save(CsvHierarchyRepository(REGISTRY, LAYER_REGISTRY).load())
+    repo.save(hierarchy_from_rows(project_rows(REGISTRY), project_rows(LAYER_REGISTRY)))
     repo.close()
-    print(f"hierarchy database written: {Path(args.db) if args.db else HIERARCHY_DB}")
+    print(f"hierarchy database written: {args.db}")
+    return 0
+
+
+def cmd_migrate_db(args):
+    print(f"project database ready: {migrate(args.db)}")
     return 0
 
 
@@ -209,12 +221,13 @@ def cmd_move_node(args):
 
 
 def cmd_set_terminal(args):
-    return run_workflow(args, lambda s: s.set_terminal(args.id, not args.off), knowledge_db=args.knowledge_db)
+    knowledge_db = args.knowledge_db or (migrate() if not args.db and not args.off else None)
+    return run_workflow(args, lambda s: s.set_terminal(args.id, not args.off), knowledge_db=knowledge_db)
 
 
 def cmd_make_samples(args):
     out = Path(args.out) if args.out else RESULTS / "samples"
-    for row in manifest_requests(CASE):
+    for row in manifest_requests(CASE, read_rows=project_rows):
         stem = Path(row.path).stem
         if stem in SAMPLE_DOCS:
             text = Path(row.path).read_text(encoding="utf-8")
@@ -237,13 +250,14 @@ def main(argv=None):
     ocr_options(p)
     p.set_defaults(run=cmd_extractors)
 
-    p = sub.add_parser("ingest-case-study", help="ingest the case-study files into a new database")
+    p = sub.add_parser("ingest-case-study", help="ingest the case-study files into SQLite")
     p.add_argument("--documents", help="read the files from this folder instead of case_study/documents")
     p.add_argument("--suffix", help="read converted copies with this suffix, such as .docx or .pdf")
     p.add_argument("--policy", default=DEFAULT_POLICY, choices=sorted(POLICIES))
     p.add_argument("--detect-duplicates", action="store_true", help="note near duplicates and overlaps, write duplicates.csv")
     p.add_argument("--run-id", help="name of the results folder")
     p.add_argument("--out", help="the results folder (default results/ingestion/<run-id>)")
+    p.add_argument("--hierarchy-db", help="use a separate hierarchy database")
     ocr_options(p)
     p.set_defaults(run=cmd_ingest_case_study)
 
@@ -257,6 +271,7 @@ def main(argv=None):
     p.add_argument("--detect-duplicates", action="store_true", help="note near duplicates and overlaps, write duplicates.csv")
     p.add_argument("--policy", default=DEFAULT_POLICY, choices=sorted(POLICIES))
     p.add_argument("--out", help="the results folder that holds knowledge.sqlite")
+    p.add_argument("--hierarchy-db", help="use a separate hierarchy database")
     ocr_options(p)
     p.set_defaults(run=cmd_ingest_file)
 
@@ -267,7 +282,11 @@ def main(argv=None):
     p.set_defaults(run=cmd_find_duplicates)
 
     def db_option(p):
-        p.add_argument("--db", help="the hierarchy database (default results/hierarchy/hierarchy.sqlite)")
+        p.add_argument("--db", help="database file (default data/project.sqlite or RAG_DATA_DB)")
+
+    p = sub.add_parser("migrate-db", help="import the project CSV datasets into SQLite once")
+    db_option(p)
+    p.set_defaults(run=cmd_migrate_db)
 
     p = sub.add_parser("show-hierarchy", help="the layers, the nodes and the transfer rules")
     db_option(p)

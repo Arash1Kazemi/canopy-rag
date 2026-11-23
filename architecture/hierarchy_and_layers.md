@@ -93,7 +93,7 @@ The second half spans two aggregates, so the workflow (an application service) r
 ../.venv/bin/python.exe -m rag_core set-terminal --id N7 --knowledge-db results/ingestion/phase5-words80/knowledge.sqlite
 ```
 
-Without `--db`, `show-hierarchy` reads the CSV files, and the other commands use `results/hierarchy/hierarchy.sqlite`. The knowledge database in the last command is read only to count the documents of the node.
+By default, all hierarchy commands use `data/project.sqlite` or the database named by `RAG_DATA_DB`. The first run imports the registry. With a separate hierarchy database, pass `--knowledge-db` when making a node terminal so the command can count its documents.
 
 ## 8. Decisions made in Phase 6
 

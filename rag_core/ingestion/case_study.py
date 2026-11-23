@@ -5,7 +5,7 @@ from pathlib import Path
 from .service import RegistrationRequest
 
 
-def manifest_requests(case_dir, documents_dir=None, replace_suffix=None):
+def manifest_requests(case_dir, documents_dir=None, replace_suffix=None, *, read_rows=None):
     """One request per manifest row, in manifest order. The item id is the doc_id (D10), the version tag is the
     manifest version.
 
@@ -15,8 +15,12 @@ def manifest_requests(case_dir, documents_dir=None, replace_suffix=None):
     case_dir = Path(case_dir)
     originals = case_dir / "documents"
     copies = Path(documents_dir) if documents_dir else None
-    with (case_dir / "documents_manifest.csv").open(encoding="utf-8", newline="") as f:
-        rows = list(csv.DictReader(f))
+    manifest = case_dir / "documents_manifest.csv"
+    if read_rows is None:
+        with manifest.open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+    else:
+        rows = read_rows(manifest)
     requests = []
     for row in rows:
         relative = Path(row["file"])

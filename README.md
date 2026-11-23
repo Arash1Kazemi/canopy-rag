@@ -1,5 +1,20 @@
 # AI Engineering: Offline Hierarchical RAG Project
 
+## SQLite storage
+
+Outside Docker, `python -m rag_core migrate-db` creates `data/project.sqlite`.
+Set `RAG_DATA_DB` to choose a different file. A first run also imports the CSV
+datasets automatically. The import runs once per database, so later runs preserve
+database edits. The `nodes` and `layers` tables hold the live hierarchy.
+Tables such as `case_study_answer_key` hold imported datasets. The registry
+dataset tables preserve the original seed rows.
+
+Default ingestion writes items, versions, and chunks to the same database.
+`--out` or `--run-id` creates an isolated ingestion database as before.
+Use `--hierarchy-db` with ingestion to use a previously created hierarchy database.
+The original CSVs serve as seed inputs and validator fixtures. Generated CSVs
+are reports, and the original documents remain available for re-ingestion.
+
 One project, one place. Everything lives in this folder, `UNI-Project`.
 
 ```
