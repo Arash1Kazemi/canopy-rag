@@ -1,6 +1,23 @@
 # AI Engineering: Offline Hierarchical RAG Project
 
-## SQLite storage
+## Run with Docker and SQLite
+
+Run these commands from `UNI-Project` with Docker Desktop running.
+
+```powershell
+docker build --target test -t uni-project:test .
+docker build -t uni-project .
+docker run --rm --network none -v uni-project-data:/data uni-project migrate-db
+docker run --rm --network none -v uni-project-data:/data uni-project ingest-case-study
+docker run --rm --network none -v uni-project-data:/data uni-project show-hierarchy
+```
+
+The test target runs the validators and the default pytest suite inside the image.
+The volume keeps `/data/project.sqlite` after a container exits. The image build
+downloads dependencies, and the commands above run offline after the build.
+For legacy `.doc` input, build the LibreOffice variant with
+`docker build --target with-doc -t uni-project:with-doc .`.
+Scanned-document OCR requires a reachable local Ollama instance.
 
 Outside Docker, `python -m rag_core migrate-db` creates `data/project.sqlite`.
 Set `RAG_DATA_DB` to choose a different file. A first run also imports the CSV
