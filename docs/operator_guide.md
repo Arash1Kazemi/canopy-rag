@@ -192,6 +192,89 @@ After the models are downloaded, the experiments do not need the internet.
 3. Compare the answers with `e2-first`. They should be the same, because the settings are fixed.
 4. Write down whether it worked. If the server refuses to start without a connection, that is an important finding, and I want to know.
 
+## Prepared runs (not run yet)
+
+Status for every run in this section: prepared, not run (2026-11-25). Nothing here has been run by the agent. Each part says what the code already supports and what needs a change first. Do the parts in order, and do not start a part until the one before it is done.
+
+### A. Rerun the baseline with `qwen3:4b-instruct`
+
+Status: prepared, not run (2026-11-25). Needs a change first: the runner has no registry row for this tag (see below).
+
+The tag `qwen3:4b` is the thinking fine-tune and was rejected (`models/model_registry.csv`). The instruct tag is a separate model, so it gets its own registry id, and the run gets its own label.
+
+1. Download it (Window 2, while online). Check the size in the output first:
+
+```powershell
+& $ollama pull qwen3:4b-instruct
+& $ollama list
+```
+
+You should see `qwen3:4b-instruct` in the list. If the pull says `pull model manifest: file does not exist`, the tag name is wrong. Tell me and do not guess another one.
+
+2. Needs a change: add one row to `models/model_registry.csv` with `model_id` `qwen3-4b-instruct` and `runtime_tag` `qwen3:4b-instruct`, and set `thinking_listed` to the value you read from the server. Without this row the runner stops with `unknown model ids` (for `--models`) or fails in `thinking_off` (it reads the registry). I (or a tutor session) make that change, then the checks must still say `6 of 6`.
+
+3. Run it as its own labelled run, once the row exists (Window 2):
+
+```powershell
+& $py -m baseline_runner e2 --models qwen3-4b-instruct --run-id e2-qwen3-4b-instruct
+```
+
+Compare `results\e2-qwen3-4b-instruct\e2_summary.csv` with the `qwen3-4b` row of `results\e2-first\e2_summary.csv`. Do not overwrite `e2-first`: the run id is the label. The `llm` column in the CSV files shows which model answered.
+
+### B. Offline run with Wi-Fi off
+
+Status: prepared, not run (2026-11-25). The code already supports it: the runner talks only to `127.0.0.1:11500` (`baseline_runner/config.py`). No change needed. Uses `phi4-mini`, so it works now and can be compared with `e2-first`.
+
+1. Start the server (Part 1) and run `check` (Part 3) while online.
+2. Turn off Wi-Fi: Settings, Network and internet, Wi-Fi, switch it Off. If you use a network cable, unplug it.
+3. Verify that the internet is gone and the local server is still there (Window 2):
+
+```powershell
+Test-NetConnection -ComputerName 1.1.1.1 -Port 443
+Test-NetConnection -ComputerName 127.0.0.1 -Port 11500
+```
+
+Expected: the first line says `TcpTestSucceeded : False`, the second says `TcpTestSucceeded : True`. If the first says True, you are still online: do not start the run, tell me.
+
+4. Run it:
+
+```powershell
+& $py -m baseline_runner e2 --models phi4-mini --run-id e2-phi4-mini-offline
+```
+
+5. Turn Wi-Fi back on. Compare `results\e2-phi4-mini-offline\e2_rows.csv` with the `phi4-mini` rows of `results\e2-first\e2_rows.csv`. The answers should match, because the settings are fixed (`seed` 42, temperature 0). If the server refuses to start or the run fails without a connection, that is an important finding: write down the error and tell me.
+
+### C. Record `ollama ps` and `nvidia-smi` during a run
+
+Status: prepared, not run (2026-11-25). The code already supports it: `scripts/save_ollama_ps.py` (no change needed). Run it in a third window while an experiment runs in Window 2.
+
+Window 3, set up the same way as Window 2 (Part 1), then start the sampler. The example takes 20 snapshots, 30 seconds apart, into the folder of the run that is running in Window 2:
+
+```powershell
+$env:OLLAMA_HOST = "127.0.0.1:11500"
+$env:OLLAMA_EXE = "E:\UNI\Semesterr 7\AI-Engineering\ollama\ollama.exe"
+$py = "E:\UNI\Semesterr 7\AI-Engineering\.venv\bin\python.exe"
+cd "E:\UNI\Semesterr 7\AI-Engineering\UNI-Project"
+& $py scripts\save_ollama_ps.py --out results\e6-first --every 30 --count 20
+```
+
+- Each snapshot is one file, `results\e6-first\ollama_ps_<UTC time>.txt`, with the `ollama ps` table and the `nvidia-smi` output. Open a few and look at `PROCESSOR`.
+- If `nvidia-smi` is not found, the file says `not available`. The run is not stopped. Run `where.exe nvidia-smi` to find it.
+- Ctrl+C stops the sampler early; the files already written stay.
+- Use the run id of the run in Window 2, so the files sit next to its CSV files.
+
+### D. Experiment E3: `words80` against `sections80`
+
+Status: prepared, not run (2026-11-25). Needs a code switch, see `docs/build_plan.md` A4. Today `baseline_runner/config.py` defines only `file` and `words80` in `CHUNK_CONFIGS`, so `--chunks sections80` fails with a `KeyError`. The `sections80` policy exists only in `rag_core/knowledge/chunking.py`, which the runner does not use. Until the switch is in place, do not run this part.
+
+The baseline already exists: `results\e3-first` is `words80` with `k` 3 and the embedding `qwen3-embedding-0.6b`. Once the switch is in place, run the same command with only the chunk setting changed:
+
+```powershell
+& $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --chunks sections80 --k 3 --models phi4-mini --run-id e3-sections80
+```
+
+Compare `results\e3-sections80\e3_summary.csv` with the `phi4-mini` row of `results\e3-first\e3_summary.csv`. Look at `M01`, `M02`, `M03` and `M12`. Also look at `M24_median`, because `sections80` may make the chunks shorter. Add `--models qwen3-4b-instruct` to both runs only after part A is done. Keep `--k 3` and the embedding the same in both runs; otherwise the comparison is not fair.
+
 ## Troubleshooting
 
 | What you see | Meaning | What to do |
