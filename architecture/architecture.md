@@ -15,7 +15,7 @@ The system is split into ten bounded contexts, the proposal's own list. Each con
 | Organizational Hierarchy | Nodes, layers, parent and child, terminal nodes | `Hierarchy` | Phases 3 and 6 (built) | `rag_core/organization/`, `rag_core/workflows/` |
 | Knowledge Management | Knowledge items, versions, chunks, metadata, source locations, duplicates | `KnowledgeItem` | Phases 3 to 5 | `rag_core/knowledge/`, `rag_core/ingestion/` |
 | RAG Core | Retrieval, context assembly, prompts, cited answers | none (domain services) | Phase 4 citations, Phase 8 the rest | `rag_core/rag/` |
-| Issue Management | Issues, sub-issues, status, progress, priority | `Issue` | Phase 7 | planned |
+| Issue Management | Issues, sub-issues, status, progress, priority | `Issue` | Phase 7 | Phase 7, in progress; code in `rag_core/issues/` |
 | Executor Management | Executor profiles, expertise, matching | `Executor` | Phase 9 | planned |
 | Issue-Knowledge-Executor | Typed relations between issues, knowledge and executors | the IKE model (`ike_model`; its classes come in Phase 9) | Phase 9 | planned |
 | Knowledge Transfer | Cycles, transfer packages, detail levels. The `TransferRule` value is in the shared kernel; the layer registry stores it | `TransferPackage` | Phase 11 | planned |

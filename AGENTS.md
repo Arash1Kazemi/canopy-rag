@@ -53,7 +53,9 @@ An offline hierarchical RAG core for organizational knowledge management, issue 
 - Phase 4 (built 2026-11-01): the ingestion prototype (`python -m rag_core ingest-case-study`), metadata schema, chunking spec (default `words80` = the Phase 2 chunks; `sections80` unmeasured), citation model. The city ingests as 20 items, D10 v2 active, the D12 copy skipped. Results in `results/ingestion/`.
 - Phase 5 (built 2026-11-08): `architecture/versioning_and_duplicates.md`. In `rag_core/knowledge/`: the change summary (`changes.py`), the chunk life cycle (`lifecycle.py`) and duplicate detection (`duplicates.py`: exact, near, overlap; advice only). `python -m rag_core find-duplicates` and `--detect-duplicates`. The measure experiment is `scripts/duplicate_experiment.py` (results in `results/duplicates/`). The policy numbers (groups of 5, near 0.8, overlap 20) are untuned starting values.
 - Phase 6 (built 2026-11-08): `architecture/hierarchy_and_layers.md`. The `Hierarchy` now holds the layer registry (name, role and a `TransferRule` per layer), tree queries, move a node, make a node terminal, change a node. `rag_core/workflows/organization.py` has the workflows; `SqliteHierarchyRepository` stores the hierarchy. Commands: `show-hierarchy`, `init-hierarchy`, `define-node`, `move-node`, `set-terminal`. The rule fields the proposal gives no values for (excluded topics, required fields, output format, maximum length, citation level) are empty on purpose.
-- Tests: 328 pass (64 from Phase 2, 264 core tests starting `test_core_`). pypdf 6.21.4 and pypdfium2 5.14.0 are installed in the venv; LibreOffice 26.8.2 is installed (reads .doc). Pillow is not needed (`rag_core/ingestion/png.py` writes the page images).
+- Tests: 335 pass, 2 deselected (earlier count was 328: 64 from Phase 2, 264 core tests starting `test_core_`).
+- Phase 7 (started): `rag_core/issues/` (issue model, CSV repository), 5 tests; the rest is in progress (see docs/build_plan.md, A7).
+- Project data now lives in `data/project.sqlite` (see `rag_core/infrastructure/project_db.py`). pypdf 6.21.4 and pypdfium2 5.14.0 are installed in the venv; LibreOffice 26.8.2 is installed (reads .doc). Pillow is not needed (`rag_core/ingestion/png.py` writes the page images).
 - My laptop (read on 2026-10-26): Ryzen 7 6800H, 15.3 GB RAM, NVIDIA RTX 3050 Laptop with 4 GB (about 2.9 GB free). Only small models fit.
 
 ## What is still open
@@ -92,6 +94,8 @@ UNI-Project/
 ├── baseline_runner/  tests/  scripts/  results/             the Phase 2 runner, all tests, scripts, and run results
 ├── diagrams/  site/  draw.io diagrams and the team hub blueprint
 ├── guides/          in-depth HTML pages for growing as an AI engineer (open guides/index.html)
+├── data/           project data: `project.sqlite` (see rag_core/infrastructure/project_db.py)
+├── phases/         HTML presentations of the phases
 └── tools/run_checks.py   six validators: case_study, registry, scope_and_glossary, metrics_and_testing, domain_report, models_and_experiments
 ```
 
