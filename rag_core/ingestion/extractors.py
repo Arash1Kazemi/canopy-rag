@@ -5,6 +5,7 @@
 | docx     | DocxExtractor         | nothing: a DOCX file is a ZIP of XML files         |
 | pdf      | PdfTextExtractor      | pip install pypdf                                  |
 | pdf scan | ScannedPdfExtractor   | pip install pypdfium2, and Ollama with an LVM      |
+| pdf mix  | both, page by page    | a page with no text layer goes to the LVM, the others are read as text |
 | doc      | DocExtractor          | LibreOffice (converts .doc to .docx, then DocxExtractor) |
 
 Each adapter returns an ExtractedDocument: the text, its sections (headings or pages), and how it was read.
@@ -28,7 +29,7 @@ from .png import encode_png
 
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t#]*$")
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-MIN_WORDS_PER_PAGE = 5   # a PDF with fewer words per page than this has no real text layer: it is a scan
+MIN_WORDS_PER_PAGE = 5   # a page with fewer words than this has no real text layer: it is a scanned page
 
 
 @dataclass(frozen=True)
@@ -166,6 +167,15 @@ def looks_scanned(page_texts):
     return words < MIN_WORDS_PER_PAGE * max(1, len(page_texts))
 
 
+def pages_without_text(page_texts):
+    """1-based numbers of the pages with no real text layer (fewer than MIN_WORDS_PER_PAGE words)."""
+    return [n for n, text in enumerate(page_texts, start=1) if len(text.split()) < MIN_WORDS_PER_PAGE]
+
+
+def _page_list(numbers):
+    return ("page " if len(numbers) == 1 else "pages ") + ", ".join(str(n) for n in numbers)
+
+
 class PdfTextExtractor:
     formats = (DocumentFormat.PDF,)
 
@@ -190,13 +200,14 @@ class PdfTextExtractor:
         return pages_to_document(pages, "pdf_text")
 
 
-def _render_pages_pdfium(path, scale=2.0):
-    """PNG bytes of every page. pypdfium2 renders the page to RGB pixels; png.py writes the PNG (no Pillow needed)."""
+def _render_pages_pdfium(path, pages=None, scale=2.0):
+    """PNG bytes of the given 1-based pages (every page when None). pypdfium2 renders a page to RGB pixels; png.py
+    writes the PNG (no Pillow needed)."""
     import pypdfium2 as pdfium   # optional
     pngs = []
     pdf = pdfium.PdfDocument(str(path))
     try:
-        for i in range(len(pdf)):
+        for i in ([n - 1 for n in pages] if pages is not None else range(len(pdf))):
             bitmap = pdf[i].render(scale=scale, rev_byteorder=True)   # rev_byteorder: RGB instead of BGR
             pngs.append(encode_png(bitmap.width, bitmap.height, bitmap.buffer, bitmap.n_channels, bitmap.stride))
     finally:
@@ -205,7 +216,8 @@ def _render_pages_pdfium(path, scale=2.0):
 
 
 class ScannedPdfExtractor:
-    """A PDF that is only images: render each page and let the LVM read it."""
+    """Pages that are only images: render each one and let the LVM read it. The renderer takes the file and a list of
+    1-based page numbers (None for every page) and returns one PNG per page, in that order."""
     formats = (DocumentFormat.PDF,)
 
     def __init__(self, vision=None, render_pages=None):
@@ -219,11 +231,21 @@ class ScannedPdfExtractor:
             return False, "install the page renderer: pip install pypdfium2"
         return True, ""
 
+    def read_pages(self, path, numbers):
+        """The LVM's text of each given 1-based page, in the same order."""
+        ok, why = self.available()
+        if not ok:
+            raise ExtractionError(f"cannot read the scanned {Path(path).name}: {why}")
+        images = self._render(path, list(numbers))
+        if len(images) != len(numbers):
+            raise ExtractionError(f"{Path(path).name}: asked for {len(numbers)} page image(s), got {len(images)}")
+        return [self.vision.read_page(png) for png in images]
+
     def extract(self, path, fmt=DocumentFormat.PDF):
         ok, why = self.available()
         if not ok:
             raise ExtractionError(f"cannot read the scanned {Path(path).name}: {why}")
-        texts = [self.vision.read_page(png) for png in self._render(path)]
+        texts = [self.vision.read_page(png) for png in self._render(path, None)]
         return pages_to_document(texts, "lvm_ocr", warnings=("text read by the LVM: check it against the page",))
 
 
@@ -265,7 +287,8 @@ class DocExtractor:
 
 
 class Extractors:
-    """Picks the adapter for a format. For a PDF it tries the text layer first and falls back to the LVM."""
+    """Picks the adapter for a format. A PDF is read page by page: from the text layer where a page has one, and by
+    the LVM for each page that has none (a scanned page). Page numbers stay as they are, so a citation can name them."""
 
     def __init__(self, vision=None, pdf_reader=None, page_renderer=None, doc_extractor=None):
         self.markdown = MarkdownExtractor()
@@ -290,8 +313,22 @@ class Extractors:
         if fmt == DocumentFormat.DOC:
             return self.doc.extract(path)
         if fmt == DocumentFormat.PDF:
-            pages = self.pdf.page_texts(path)
-            if not looks_scanned(pages):
-                return pages_to_document(pages, "pdf_text")
-            return self.scan.extract(path)
+            return self.read_pdf(path)
         raise ExtractionError(f"no adapter for {fmt}")
+
+    def read_pdf(self, path):
+        pages = list(self.pdf.page_texts(path))
+        missing = pages_without_text(pages)
+        if not missing:
+            return pages_to_document(pages, "pdf_text")
+        lvm_ready, _ = self.scan.available()
+        if not lvm_ready:
+            if looks_scanned(pages):
+                return self.scan.extract(path)       # raises, and says what to install or start
+            return pages_to_document(pages, "pdf_text", warnings=(
+                f"{_page_list(missing)} of {len(pages)} have no text layer and were kept as they are; "
+                f"to read them with the LVM, start Ollama and pass --ocr",))
+        for number, text in zip(missing, self.scan.read_pages(path, missing)):
+            pages[number - 1] = text
+        method = "lvm_ocr" if len(missing) == len(pages) else "pdf_mixed"
+        return pages_to_document(pages, method, warnings=(f"{_page_list(missing)} read by the LVM: check the text against the page",))

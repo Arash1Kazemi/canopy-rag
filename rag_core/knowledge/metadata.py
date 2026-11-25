@@ -13,7 +13,7 @@ from ..shared.kernel import DomainError
 DOCUMENT_TYPES = ("document", "profile", "project_report", "research_record", "achievement_record",
                   "challenge_record", "issue_answer", "rfp", "rfp_response", "feedback_report", "ike_model")
 FORMATS = ("md", "txt", "docx", "doc", "pdf")
-EXTRACTION_METHODS = ("markdown", "plain_text", "docx_xml", "pdf_text", "doc_convert", "lvm_ocr")
+EXTRACTION_METHODS = ("markdown", "plain_text", "docx_xml", "pdf_text", "doc_convert", "lvm_ocr", "pdf_mixed")
 SHA256 = r"[0-9a-f]{64}"
 
 

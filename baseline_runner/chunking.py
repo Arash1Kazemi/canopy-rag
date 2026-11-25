@@ -1,7 +1,13 @@
-"""Split files into chunks. The baseline uses the simplest usual way: windows of words with some overlap."""
+"""Split files into chunks. The baseline uses the simplest usual way: windows of words with some overlap.
+The CORE_CHUNKS settings (sections80) are cut by the core's chunking instead, with the Markdown headings as sections,
+so E3 measures exactly what ingestion stores."""
 from dataclasses import dataclass
 
-from .config import CHUNK_CONFIGS
+from rag_core.ingestion.extractors import HEADING, sections_from_headings
+from rag_core.knowledge.chunking import POLICIES, chunk_text
+from rag_core.knowledge.model import KnowledgeItemId, VersionTag
+
+from .config import CHUNK_CONFIGS, CORE_CHUNKS
 
 
 @dataclass(frozen=True)
@@ -29,7 +35,21 @@ def words_windows(text, size, overlap):
         start += size - overlap
 
 
+def core_chunks(f, policy_name):
+    """The core's chunks of one Markdown file: a heading starts a section, as in MarkdownExtractor."""
+    pairs = []
+    for line in f.text.split("\n"):
+        m = HEADING.match(line)
+        pairs.append((len(m.group(1)) if m else None, line))
+    text, sections = sections_from_headings(pairs)
+    return chunk_text(text, sections, POLICIES[policy_name], item_id=KnowledgeItemId(f.doc_id),
+                      version_tag=VersionTag(f.version), node_id=f.node_id, source_file=f"{f.stem}.md")
+
+
 def make_chunks(files, config_name):
+    if config_name in CORE_CHUNKS:
+        return [Chunk(f"{f.stem}#{c.order}", f.stem, f.doc_id, f.node_id, c.text)
+                for f in files for c in core_chunks(f, config_name)]
     setting = CHUNK_CONFIGS[config_name]
     chunks = []
     for f in files:

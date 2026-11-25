@@ -22,8 +22,8 @@ Terminal nodes (N3, N5) have one summary document each; their insides are not mo
 
 | File | Purpose |
 |---|---|
-| `documents/` | 22 files = 20 documents (D01 to D20) + 1 older version + 1 exact duplicate |
-| `documents_manifest.csv` | One row per file: node, language, version, planted problem |
+| `documents/` | 22 Markdown files = 20 documents (D01 to D20) + 1 older version + 1 exact duplicate, and 5 real DOCX and PDF files made from 5 of them |
+| `documents_manifest.csv` | One row per Markdown file: node, language, version, planted problem, and the real file made from it (`real_file`, `real_format`) |
 | `issues.csv` | 7 issues, 3 of them sub-issues of I01 |
 | `people.csv` | 6 executors with expertise |
 | `answer_key.csv` | 26 test questions with expected answers and sources; each is answerable from the one node named in `asked_at_node` |
@@ -35,14 +35,26 @@ Terminal nodes (N3, N5) have one summary document each; their insides are not mo
 | Exact duplicate | D12 and its _copy | Duplicate detection |
 | New version | D10 v1 (120 buses) vs v2 (135 buses) | Versioning, active version |
 | Contradiction | D11 says Route 12 busiest; D16 says Route 7 (both in N6) | Research gaps, honest uncertainty |
-| Scanned PDF | D19 (convert to image-only PDF yourself) | Extraction, vision model |
+| Scanned PDF | D19 (its real file is an image-only PDF) | Extraction, vision model |
 | Node boundary | D07 belongs to N2; Q22 asks N6 about it | Metadata filtering |
 | Terminal nodes | N3, N5 | Black-box boundary |
 | Unanswerable | Q23, Q24 | Saying "insufficient knowledge" |
 
 ## Formats
-The files are Markdown so you can edit them easily. The proposal ingests DOC, DOCX and PDF, so in Phase 4 we will convert
-some of them (all three formats) with a small script. D19 should become an image-only PDF.
+The Markdown files are the source of truth, so you can edit them easily. The proposal ingests DOC, DOCX and PDF, so
+`scripts/make_real_files.py` uses LibreOffice to make real files from five of them, in the same node folder and with
+the same file stem (so citations and the answer key do not change):
+
+| real_format | Documents | How it is read |
+|---|---|---|
+| `docx` | D04, D13 | the DOCX reader (headings and tables) |
+| `pdf_text` | D02, D17 | pypdf, one section per page |
+| `pdf_image_only` | D19 | no text layer: each page goes to the vision model (`--ocr`) |
+
+After editing one of these five Markdown files, run the script again. `python -m rag_core ingest-case-study` reads the
+real files; `--markdown` reads only the Markdown. Without `--ocr` there is no vision model, so D19 is read from its
+Markdown and the report says so. The D10 versions and the D12 duplicate stay Markdown on purpose. No DOC file is made:
+the DOC reader is tested with a stand-in for LibreOffice.
 
 ## Held-out questions
 

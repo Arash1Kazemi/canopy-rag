@@ -17,7 +17,7 @@ from pathlib import Path
 
 from . import experiments as ex
 from . import system_info
-from .config import BASELINE_CHUNKS, BASELINE_K, JUDGE_PROBE, RESULTS
+from .config import BASELINE_CHUNKS, BASELINE_K, CHUNK_CONFIGS, CORE_CHUNKS, JUDGE_PROBE, RESULTS
 from .corpus import read_csv
 from .fakes import FakeClient
 from .ollama_api import OllamaClient, OllamaError
@@ -48,7 +48,8 @@ def parse(argv):
     parser.add_argument("--run-id", help="name of the run (default: the date and time)")
     parser.add_argument("--models", help="comma separated model ids (default: the shortlisted models of the right task)")
     parser.add_argument("--embedding", help="embedding model id used for retrieval in e3 and e6")
-    parser.add_argument("--chunks", default=BASELINE_CHUNKS, help="chunk setting for e3 and e6")
+    parser.add_argument("--chunks", default=BASELINE_CHUNKS, choices=(*CHUNK_CONFIGS, *CORE_CHUNKS),
+                        help="chunk setting for e3 and e6 (words80 is the baseline; sections80 stops at headings)")
     parser.add_argument("--k", type=int, default=BASELINE_K, help="chunks per question for e3")
     parser.add_argument("--tier", type=int, default=1, help="pull: download tiers up to this number")
     parser.add_argument("--images", nargs="*", type=Path, help="e4: page images to read")

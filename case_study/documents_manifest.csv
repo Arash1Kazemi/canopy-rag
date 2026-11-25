@@ -1,23 +1,23 @@
-doc_id,file,node_id,title,language,version,planted_problem
-D01,N0_city_council/D01_budget_summary_2025.md,N0,Budget Summary 2025,en,1,
-D02,N0_city_council/D02_city_strategy_2030.md,N0,City Strategy 2030,en,1,
-D03,N0_city_council/D03_quarterly_priorities_memo_Q3_2025.md,N0,Quarterly Priorities Memo Q3 2025,en,1,
-D04,N1_transport_dept/D04_transport_policy_2025.md,N1,Transport Policy 2025,en,1,
-D05,N1_transport_dept/D05_fleet_budget_2025.md,N1,Fleet Budget 2025,en,1,
-D06,N1_transport_dept/D06_air_quality_report_2025.md,N1,Air Quality Report 2025,en,1,
-D07,N2_water_dept/D07_water_quality_standards.md,N2,Water Quality Standards,en,1,node boundary test (N6 must not see it)
-D08,N2_water_dept/D08_annual_water_report_2024.md,N2,Annual Water Report 2024,en,1,
-D09,N3_housing_dept_TERMINAL/D09_housing_quarterly_summary_Q2_2025.md,N3,Housing Quarterly Summary Q2 2025,en,1,terminal node: internals not modeled
-D10,N4_transit_agency/D10_bus_fleet_inventory_v1.md,N4,Bus Fleet Inventory,en,1,old version (135 buses is the current truth)
-D10,N4_transit_agency/D10_bus_fleet_inventory_v2.md,N4,Bus Fleet Inventory,en,2,"new version, must be the active one"
-D11,N6_bus_network_project/D11_ridership_report_H1_2025.md,N6,Ridership Report H1 2025,en,1,contradicts D16 on busiest route
-D12,N4_transit_agency/D12_driver_shift_rules.md,N4,Driver Shift Rules,en,3,exact duplicate of the _copy file
-D12,N4_transit_agency/D12_driver_shift_rules_copy.md,N4,Driver Shift Rules (copy),en,3,exact duplicate
-D13,N4_transit_agency/D13_maintenance_schedule_2025.md,N4,Maintenance Schedule 2025,en,1,
-D14,N5_water_utility_TERMINAL/D14_leak_statistics_summary_2025.md,N5,Leak Statistics Summary H1 2025,en,1,terminal node: internals not modeled
-D15,N6_bus_network_project/D15_route_redesign_proposal.md,N6,Route Redesign Pilot Proposal,en,1,
-D16,N6_bus_network_project/D16_passenger_survey_2025.md,N6,Passenger Survey 2025,en,1,contradicts D11 on busiest route
-D17,N6_bus_network_project/D17_pilot_test_report.md,N6,Route 7 Pilot Test Report,en,1,
-D18,N6_bus_network_project/D18_complaint_log_Q2_2025.md,N6,Complaint Log Q2 2025,en,1,5 of 8 complaints are about Route 7
-D19,N6_bus_network_project/D19_meeting_minutes_2025-06-18.md,N6,Meeting Minutes 18 June 2025,en,1,to be converted to an image-only (scanned) PDF
-D20,N6_bus_network_project/D20_cost_estimate.md,N6,Cost Estimate,en,1,
+doc_id,file,node_id,title,language,version,planted_problem,real_file,real_format
+D01,N0_city_council/D01_budget_summary_2025.md,N0,Budget Summary 2025,en,1,,,
+D02,N0_city_council/D02_city_strategy_2030.md,N0,City Strategy 2030,en,1,,N0_city_council/D02_city_strategy_2030.pdf,pdf_text
+D03,N0_city_council/D03_quarterly_priorities_memo_Q3_2025.md,N0,Quarterly Priorities Memo Q3 2025,en,1,,,
+D04,N1_transport_dept/D04_transport_policy_2025.md,N1,Transport Policy 2025,en,1,,N1_transport_dept/D04_transport_policy_2025.docx,docx
+D05,N1_transport_dept/D05_fleet_budget_2025.md,N1,Fleet Budget 2025,en,1,,,
+D06,N1_transport_dept/D06_air_quality_report_2025.md,N1,Air Quality Report 2025,en,1,,,
+D07,N2_water_dept/D07_water_quality_standards.md,N2,Water Quality Standards,en,1,node boundary test (N6 must not see it),,
+D08,N2_water_dept/D08_annual_water_report_2024.md,N2,Annual Water Report 2024,en,1,,,
+D09,N3_housing_dept_TERMINAL/D09_housing_quarterly_summary_Q2_2025.md,N3,Housing Quarterly Summary Q2 2025,en,1,terminal node: internals not modeled,,
+D10,N4_transit_agency/D10_bus_fleet_inventory_v1.md,N4,Bus Fleet Inventory,en,1,old version (135 buses is the current truth),,
+D10,N4_transit_agency/D10_bus_fleet_inventory_v2.md,N4,Bus Fleet Inventory,en,2,"new version, must be the active one",,
+D11,N6_bus_network_project/D11_ridership_report_H1_2025.md,N6,Ridership Report H1 2025,en,1,contradicts D16 on busiest route,,
+D12,N4_transit_agency/D12_driver_shift_rules.md,N4,Driver Shift Rules,en,3,exact duplicate of the _copy file,,
+D12,N4_transit_agency/D12_driver_shift_rules_copy.md,N4,Driver Shift Rules (copy),en,3,exact duplicate,,
+D13,N4_transit_agency/D13_maintenance_schedule_2025.md,N4,Maintenance Schedule 2025,en,1,,N4_transit_agency/D13_maintenance_schedule_2025.docx,docx
+D14,N5_water_utility_TERMINAL/D14_leak_statistics_summary_2025.md,N5,Leak Statistics Summary H1 2025,en,1,terminal node: internals not modeled,,
+D15,N6_bus_network_project/D15_route_redesign_proposal.md,N6,Route Redesign Pilot Proposal,en,1,,,
+D16,N6_bus_network_project/D16_passenger_survey_2025.md,N6,Passenger Survey 2025,en,1,contradicts D11 on busiest route,,
+D17,N6_bus_network_project/D17_pilot_test_report.md,N6,Route 7 Pilot Test Report,en,1,,N6_bus_network_project/D17_pilot_test_report.pdf,pdf_text
+D18,N6_bus_network_project/D18_complaint_log_Q2_2025.md,N6,Complaint Log Q2 2025,en,1,5 of 8 complaints are about Route 7,,
+D19,N6_bus_network_project/D19_meeting_minutes_2025-06-18.md,N6,Meeting Minutes 18 June 2025,en,1,"scanned document: the real file is an image-only PDF, read by the LVM",N6_bus_network_project/D19_meeting_minutes_2025-06-18.pdf,pdf_image_only
+D20,N6_bus_network_project/D20_cost_estimate.md,N6,Cost Estimate,en,1,,,

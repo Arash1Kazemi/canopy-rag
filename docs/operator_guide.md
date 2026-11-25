@@ -265,9 +265,13 @@ cd "E:\UNI\Semesterr 7\AI-Engineering\UNI-Project"
 
 ### D. Experiment E3: `words80` against `sections80`
 
-Status: prepared, not run (2026-11-25). Needs a code switch, see `docs/build_plan.md` A4. Today `baseline_runner/config.py` defines only `file` and `words80` in `CHUNK_CONFIGS`, so `--chunks sections80` fails with a `KeyError`. The `sections80` policy exists only in `rag_core/knowledge/chunking.py`, which the runner does not use. Until the switch is in place, do not run this part.
+Status: prepared, not run (2026-11-25). The switch now exists: `--chunks sections80` cuts the documents with the core's `sections80` policy (`baseline_runner/chunking.py`, tested in `tests/test_experiments_chunking.py`), and `--chunks` refuses a name it does not know.
 
-The baseline already exists: `results\e3-first` is `words80` with `k` 3 and the embedding `qwen3-embedding-0.6b`. Once the switch is in place, run the same command with only the chunk setting changed:
+The baseline already exists: `results\e3-first` is `words80` with `k` 3 and the embedding `qwen3-embedding-0.6b`. For a fair comparison, run both settings on the same day, changing only the chunk setting:
+
+```powershell
+& $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --chunks words80 --k 3 --models phi4-mini --run-id e3-words80
+```
 
 ```powershell
 & $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --chunks sections80 --k 3 --models phi4-mini --run-id e3-sections80

@@ -1,7 +1,8 @@
 """Command line for the core. Run from UNI-Project/:
 
     python -m rag_core extractors                       which formats can be read on this laptop
-    python -m rag_core ingest-case-study                 ingest the 22 case-study files, write the database and CSV files
+    python -m rag_core ingest-case-study                 ingest the 22 case-study files (the real DOCX and PDF files where the
+                                                         manifest names one; --markdown for the Markdown only; --ocr for D19)
     python -m rag_core ingest-file PATH --item D19 --node N6 --version 2 --title "Meeting Minutes 18 June 2025"
     python -m rag_core make-samples                      DOCX and PDF copies of some case-study files, to test ingestion
     python -m rag_core find-duplicates --db results/ingestion/RUN/knowledge.sqlite    exact, near and overlap findings
@@ -102,7 +103,13 @@ def out_folder(args):
 
 
 def cmd_ingest_case_study(args):
-    requests = manifest_requests(CASE, args.documents, args.suffix, read_rows=project_rows)
+    rows = project_rows(CASE / "documents_manifest.csv")
+    if not args.markdown and rows and "real_file" not in rows[0]:
+        print("note: the manifest in the project database has no real_file column (it was copied there before the real "
+              "DOCX and PDF files existed), so the Markdown files are read. To read the real files, point RAG_DATA_DB "
+              "at a new database file.", file=sys.stderr)
+    requests = manifest_requests(CASE, args.documents, args.suffix, read_rows=lambda _: rows,
+                                 real_files=not args.markdown, lvm=args.ocr)
     return run_ingest(args, requests, out_folder(args))
 
 
@@ -234,7 +241,7 @@ def cmd_make_samples(args):
             folder = out / Path(row.source_file).parent
             print(markdown_to_docx(text, folder / f"{stem}.docx"))
             print(text_to_pdf(text, folder / f"{stem}.pdf"))
-    print("D19 as an image-only PDF is not made here: see architecture/ingestion.md")
+    print("The real DOCX and PDF files, and D19 as an image-only PDF, are made by scripts/make_real_files.py")
     return 0
 
 
@@ -253,6 +260,8 @@ def main(argv=None):
     p = sub.add_parser("ingest-case-study", help="ingest the case-study files into SQLite")
     p.add_argument("--documents", help="read the files from this folder instead of case_study/documents")
     p.add_argument("--suffix", help="read converted copies with this suffix, such as .docx or .pdf")
+    p.add_argument("--markdown", action="store_true",
+                   help="read only the Markdown sources, not the real DOCX and PDF files the manifest names")
     p.add_argument("--policy", default=DEFAULT_POLICY, choices=sorted(POLICIES))
     p.add_argument("--detect-duplicates", action="store_true", help="note near duplicates and overlaps, write duplicates.csv")
     p.add_argument("--run-id", help="name of the results folder")

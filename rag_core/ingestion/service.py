@@ -39,6 +39,7 @@ class RegistrationRequest:
     source_file: Optional[str] = None      # the name to record; defaults to the file name
     change_reason: str = ""
     extra_metadata: dict = field(default_factory=dict)
+    notes: tuple = ()                      # said by the caller about this file; they become warnings of the result
 
 
 @dataclass(frozen=True)
@@ -105,7 +106,7 @@ class IngestionService:
         change = summarize_change(item.versions[-1].text, doc.text) if item is not None else ""
         version = KnowledgeVersion(tag, doc.text, metadata, chunks, diff_summary=change)
 
-        warnings = list(doc.warnings)
+        warnings = list(req.notes) + list(doc.warnings)
         for other, other_version in self.repo.find_by_text(text_hash):
             if other.item_id != item_id:
                 warnings.append(f"same text as {other.item_id} version {other_version.tag}")

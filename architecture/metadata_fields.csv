@@ -9,7 +9,7 @@ source_file,yes,text,,"The file path, relative to the case-study documents folde
 file_format,yes,one of,md;txt;docx;doc;pdf,The DocumentFormat of the file.,proposal 7.3
 file_sha256,yes,sha256,,ContentHash of the file's bytes.,proposal 7.7 (file hash)
 text_sha256,yes,sha256,,ContentHash of the normalized extracted text.,proposal 7.7 (text normalization)
-extraction_method,yes,one of,markdown;plain_text;docx_xml;pdf_text;doc_convert;lvm_ocr,How the text was read.,proposal 7.3
+extraction_method,yes,one of,markdown;plain_text;docx_xml;pdf_text;doc_convert;lvm_ocr;pdf_mixed,How the text was read.,proposal 7.3
 page_count,no,int,,"Pages, when the format has pages.",proposal 7.4 (page number)
 ingested_at,yes,date,,"When the version was registered, ISO 8601 in UTC.",ingestion
 change_reason,no,text,,Why this version was added.,proposal 7.6 (reason for change)

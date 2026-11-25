@@ -59,3 +59,10 @@ With `words80`, the last window of a text can be short and mostly overlap. For e
 ## Next: the experiment that decides the default
 
 Run E3 (the end-to-end answers) with both policies and compare M01 (answer correctness), M07 (context precision) and M08 (context recall). Change the default only if `sections80` is at least as good on all three. Until then the default stays `words80` (decision A8 in `architecture/architecture.md`).
+
+Prepared on 2026-11-25, not run yet. The Phase 2 runner takes `--chunks words80` or `--chunks sections80`; `sections80` is cut by `rag_core/knowledge/chunking.py` with the Markdown headings as sections, so E3 measures what ingestion stores (`tests/test_experiments_chunking.py` checks both run with the fake client). Both runs read the Markdown files, so only the chunking changes. Run both on the same day, with the same models and `k`:
+
+```powershell
+& $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --models phi4-mini --k 3 --chunks words80 --run-id e3-words80
+& $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --models phi4-mini --k 3 --chunks sections80 --run-id e3-sections80
+```

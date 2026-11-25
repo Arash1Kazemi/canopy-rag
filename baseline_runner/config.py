@@ -21,6 +21,9 @@ REFUSAL_PHRASE = "insufficient knowledge"
 # chunk setting name -> (words per chunk, words of overlap). None means one chunk per file.
 CHUNK_CONFIGS = {"file": None, "words80": (80, 15)}
 BASELINE_CHUNKS = "words80"  # the simplest usual setting, so it is the baseline
+# Chunk settings cut by the core's chunking policies (rag_core/knowledge/chunking.py), for the Phase 4 E3 comparison
+# of words80 with sections80. E1 does not try them unless asked.
+CORE_CHUNKS = ("sections80",)
 BASELINE_K = 3
 KS = (1, 3, 5)
 LATENCY_KS = (1, 3, 6, 12)

@@ -35,9 +35,13 @@ EXPECTED = dict(
     nodes=7, layers=4, files=22, documents=20, questions=26,
     issues=7, sub_issues_of_I01=3, people=6, objectives=8, proposal_objectives=20,
     metrics=28, hard_rules=10, test_areas=14,
+    real_files=5,  # Phase 4: DOCX and PDF files made from the Markdown by scripts/make_real_files.py
 )
 
-MANIFEST_COLUMNS = ["doc_id", "file", "node_id", "title", "language", "version", "planted_problem"]
+MANIFEST_COLUMNS = ["doc_id", "file", "node_id", "title", "language", "version", "planted_problem", "real_file", "real_format"]
+# real_format -> the suffix of the real file. The Markdown in `file` stays the source of truth (and what the
+# checks below read); the real file sits beside it with the same stem, so citations and the answer key do not change.
+REAL_FORMATS = {"docx": ".docx", "pdf_text": ".pdf", "pdf_image_only": ".pdf"}
 KEY_COLUMNS = ["question_id", "asked_at_node", "language", "type", "question", "expected_answer", "source_files"]
 ISSUE_COLUMNS = ["issue_id", "node_id", "parent_issue_id", "title", "description", "status"]
 PEOPLE_COLUMNS = ["person_id", "name", "node_id", "role", "expertise"]
@@ -170,11 +174,39 @@ def check_case_study(r):
     # manifest <-> files on disk
     on_disk = {p.relative_to(DOCS).as_posix() for p in DOCS.rglob("*") if p.is_file()}
     listed = [row["file"] for row in manifest]
+    real = [row["real_file"] for row in manifest if row["real_file"]]
     r.check(len(listed) == len(set(listed)), "manifest lists the same file twice")
-    for f in listed:
+    for f in listed + real:
         r.check(f in on_disk, f"manifest lists a file that does not exist: {f}")
     for f in sorted(on_disk):
-        r.check(f in listed, f"file is not in the manifest: {f}")
+        r.check(f in listed or f in real, f"file is not in the manifest: {f}")
+    r.check(all(f.endswith(".md") for f in listed), "the file column names the Markdown sources (.md)")
+
+    # real files (Phase 4): beside their Markdown, same stem, and what real_format says
+    r.check(len(real) == len(set(real)) == EXPECTED["real_files"],
+            f"manifest names {len(real)} real files, expected {EXPECTED['real_files']} different ones")
+    for row in manifest:
+        name, fmt = row["real_file"], row["real_format"]
+        r.check(bool(name) == bool(fmt), f"{row['file']}: real_file and real_format are both set or both empty")
+        if not name:
+            continue
+        r.check(fmt in REAL_FORMATS, f"{name}: unknown real_format {fmt}; known: {', '.join(REAL_FORMATS)}")
+        md, made = Path(row["file"]), Path(name)
+        r.check(made.parent == md.parent and made.stem == md.stem, f"{name}: must sit beside {row['file']} with the same stem")
+        r.check(made.suffix == REAL_FORMATS.get(fmt), f"{name}: a {fmt} file ends in {REAL_FORMATS.get(fmt)}")
+        r.check(row["doc_id"] not in ("D10", "D12"), f"{name}: the version and duplicate traps (D10, D12) stay Markdown")
+        path = DOCS / name
+        if not path.is_file():
+            continue
+        data = path.read_bytes()
+        if fmt == "docx":
+            r.check(data.startswith(b"PK\x03\x04"), f"{name}: is not a DOCX (ZIP) file")
+        else:
+            r.check(data.startswith(b"%PDF-"), f"{name}: is not a PDF file")
+            # a text PDF names a font; an image-only PDF (a scan) has no font, so it has no text layer
+            r.check((b"/Font" in data) == (fmt == "pdf_text"), f"{name}: {fmt} {'needs' if fmt == 'pdf_text' else 'must not have'} a font")
+    r.check([row["doc_id"] for row in manifest if row["real_format"] == "pdf_image_only"] == ["D19"],
+            "D19, and only D19, is the image-only (scanned) PDF")
     r.check(len(manifest) == EXPECTED["files"], f"manifest has {len(manifest)} files, expected {EXPECTED['files']}")
     doc_ids = sorted({row["doc_id"] for row in manifest})
     want_ids = [f"D{i:02d}" for i in range(1, EXPECTED["documents"] + 1)]

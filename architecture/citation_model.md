@@ -27,7 +27,7 @@ The short form is the file stem: the file name without folder and extension. It 
 1. A cited stem must belong to a chunk that was given to the model, and to the asking node (checked by GR5 now, and by the answer formatter in Phase 8).
 2. An old version is never cited by default, because retrieval uses only active versions. The version is in the stem (`..._v2`) and in the chunk id (`D10@2#1`).
 3. A duplicate is cited once (GR4). Since ingestion skips an exact repeat, the D12 copy is no longer in the index at all, so it cannot be cited.
-4. A page is shown only when the format has pages (PDF). A Markdown or DOCX file shows its heading path instead.
+4. A page is shown only when the format has pages (PDF). A Markdown or DOCX file shows its heading path instead. A PDF page read by the LVM keeps its page number too. Checked from file to citation in `tests/test_core_pdf_pages.py` (a two-page PDF with one scanned page) and `tests/test_core_real_files.py` (the real D02, D17 and D19 PDFs of the city).
 
 ## Why not cite chunk ids in the answer
 
