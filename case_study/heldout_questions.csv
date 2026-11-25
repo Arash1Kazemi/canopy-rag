@@ -1,0 +1,11 @@
+question_id,asked_at_node,language,type,question,expected_answer,source_files
+HQ01,N0,en,factual,How much of the 2025 city budget is allocated to water?,61 million EUR,D01_budget_summary_2025
+HQ02,N0,en,factual,"What is the 2030 target for annual bus trips, and what was the 2024 baseline?",40 million trips by 2030; the 2024 baseline is 28 million.,D02_city_strategy_2030
+HQ03,N1,en,multi_document,"What does the fleet budget buy in new buses, and what does the transport policy say about new bus purchases from 2026?","24 new electric buses (20.4 million EUR). From 2026 every new bus purchased must be electric.","D05_fleet_budget_2025, D04_transport_policy_2025"
+HQ04,N4,en,version_trap,What is the average age of the bus fleet now?,"8.1 years (version 2 of the fleet inventory, 10 July 2025). The 9.4 years of version 1 is outdated.",D10_bus_fleet_inventory_v2
+HQ05,N4,en,version_history,How many diesel buses did the agency have in January 2025?,"80 (from version 1 of the fleet inventory, dated 15 January 2025).",D10_bus_fleet_inventory_v1
+HQ06,N4,en,duplicate,What is the minimum rest between two driver shifts?,"11 hours. Cite the rule once, not twice.",D12_driver_shift_rules (or its copy)
+HQ07,N6,en,multi_document,"How many of the 8 complaints in Q2 2025 were about Route 12, and what share of survey respondents named Route 12 as the most overcrowded route?","2 of 8 complaints (C-102 and C-107). 27% of respondents named Route 12.","D18_complaint_log_Q2_2025, D16_passenger_survey_2025"
+HQ08,N6,en,scanned_pdf,Who prepares the passenger announcements for the pilot and by when?,"Leila Rahimi, by 25 July 2025",D19_meeting_minutes_2025-06-18
+HQ09,N2,en,node_boundary,How many affordable homes were completed in Q2 2025?,Insufficient knowledge in this node. The answer exists in N3 (640) but N2 must not see it.,none for N2
+HQ10,N4,en,unanswerable,What is the annual salary of a bus driver?,Insufficient knowledge: not in any document.,none

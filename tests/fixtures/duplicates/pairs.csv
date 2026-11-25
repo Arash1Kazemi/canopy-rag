@@ -1,0 +1,27 @@
+pair_id,file_a,file_b,label,note
+P01,orig_D13.md,exact_01_b.md,exact,D13 with extra blank lines and spaces only
+P02,orig_D04.md,exact_02_b.md,exact,D04 with indented bullets and trailing blank lines
+P03,orig_D04.md,near_01_b.md,near,one word changed in the first rule
+P04,orig_D06.md,near_02_b.md,near,one sentence reworded
+P05,orig_D08.md,near_03_b.md,near,two labels reworded
+P06,orig_D13.md,near_04_b.md,near,three labels reworded
+P07,orig_D17.md,near_05_b.md,near,"three edits, one sentence rephrased"
+P08,orig_D20.md,near_06_b.md,near,"whole text in upper case (same words, different case)"
+P09,orig_D15.md,near_07_b.md,near,heavy paraphrase of five sentences
+P10,orig_D12.md,near_08_b.md,near,"new version number, date and one wording change"
+P11,orig_D12.md,overlap_01_b.md,overlap,three shift rules copied into an onboarding note
+P12,orig_D17.md,overlap_02_b.md,overlap,pilot results table copied into a briefing
+P13,orig_D11.md,overlap_03_b.md,overlap,busiest-routes table and conclusion copied into a press summary
+P14,orig_D16.md,overlap_04_b.md,overlap,survey list of requested improvements copied into a plan
+P15,orig_D05.md,overlap_05_b.md,overlap,fleet budget table copied into a summary
+P16,orig_D07.md,overlap_06_b.md,overlap,limits and sampling rules copied into a checklist
+P17,orig_D19.md,overlap_07_b.md,overlap,decisions and actions copied into an email
+P18,orig_D18.md,overlap_08_b.md,overlap,first three rows of the complaint log copied into an analysis
+P19,orig_D04.md,orig_D06.md,different,both Transport Dept documents
+P20,orig_D11.md,orig_D16.md,different,both about routes and both have route tables
+P21,orig_D01.md,orig_D05.md,different,"both budgets, different figures"
+P22,orig_D06.md,orig_D07.md,different,two reports with limits and measurements
+P23,orig_D17.md,orig_D20.md,different,pilot report and its cost estimate
+P24,orig_D18.md,orig_D19.md,different,complaints and minutes of one project
+P25,orig_D02.md,orig_D03.md,different,strategy and memo from the same office
+P26,orig_D08.md,orig_D14.md,different,two water documents from different nodes

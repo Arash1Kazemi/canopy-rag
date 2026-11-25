@@ -7,10 +7,18 @@ Four parts, all on the case-study documents (they are only read, never changed):
   B  edited copies            a document with 1%..40% of its words replaced (seeded, so the run is repeatable)
   C  a passage inside another a passage of 10..160 words of one document inserted into another document
   D  a format copy            a Markdown file, written as DOCX and read back
-It writes results/duplicates/phase5-experiment/experiment.csv. The numbers come from a small, planted data set: use them
+It writes results/duplicates/phase5-experiment/experiment.csv.
+
+Labelled mode (metrics M10 and M11 baselines):
+
+    ../.venv/bin/python.exe -I scripts/duplicate_experiment.py --pairs tests/fixtures/duplicates/pairs.csv
+
+It runs the detector on each labelled pair (exact | near | overlap | different) and writes the verdict of each pair and the
+precision and recall per label to results/duplicates/labelled-pairs/. The numbers are baselines, not targets. The numbers come from a small, planted data set: use them
 to see how the measures behave, not as a final choice of limits. Metrics M10 and M11 need more planted pairs.
 """
 import csv
+import datetime
 import random
 import sys
 import tempfile
@@ -27,6 +35,9 @@ from rag_core.ingestion.extractors import DocxExtractor, Extractors             
 from rag_core.ingestion.samples import markdown_to_docx                         # noqa: E402
 from rag_core.ingestion.service import IngestionService                         # noqa: E402
 from rag_core.knowledge.duplicates import DuplicatePolicy, containment, resemblance, word_groups  # noqa: E402
+from rag_core.knowledge.model import ContentHash                                # noqa: E402
+
+LABELS = ("exact", "near", "overlap", "different")
 
 SIZES = (3, 5, 8)
 RATES = (0.01, 0.02, 0.05, 0.10, 0.20, 0.40)
@@ -121,7 +132,73 @@ def part_d(texts, source):
         print(f"   size {size}: resemblance {resemblance(a, b):.3f}")
 
 
+def verdict_for(text_a, text_b, policy):
+    """The detector's verdict for two texts, as the detector decides it: exact first, then near, then overlap."""
+    if ContentHash.of_text(text_a) == ContentHash.of_text(text_b):
+        return "exact", 1.0, 0, 1.0
+    a, b = word_groups(text_a, policy.word_group_size), word_groups(text_b, policy.word_group_size)
+    res, shared = resemblance(a, b), len(a & b)
+    kind = policy.kind_for(res, shared)
+    return (kind.value if kind else "different"), res, shared, containment(a, b)
+
+
+def labelled_pairs(pairs_path, run_date=None):
+    """Compare the detector's verdict with the label of each pair and save precision and recall per label."""
+    pairs_path = Path(pairs_path)
+    folder = pairs_path.parent
+    policy = DuplicatePolicy()
+    rows = []
+    with pairs_path.open(encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            text_a = (folder / r["file_a"]).read_text(encoding="utf-8")
+            text_b = (folder / r["file_b"]).read_text(encoding="utf-8")
+            verdict, res, shared, con = verdict_for(text_a, text_b, policy)
+            rows.append({"pair_id": r["pair_id"], "label": r["label"], "verdict": verdict, "resemblance": f"{res:.3f}",
+                         "containment": f"{con:.3f}", "shared_groups": shared, "correct": str(verdict == r["label"]).lower(),
+                         "note": r["note"]})
+    summary = []
+    for label in LABELS:
+        actual = sum(1 for r in rows if r["label"] == label)
+        predicted = sum(1 for r in rows if r["verdict"] == label)
+        hits = sum(1 for r in rows if r["label"] == label and r["verdict"] == label)
+        summary.append({"label": label, "pairs": actual, "predicted": predicted, "correct": hits,
+                        "precision": f"{hits / predicted:.3f}" if predicted else "n/a",
+                        "recall": f"{hits / actual:.3f}" if actual else "n/a"})
+    # M11 reading: pairs labelled different that the detector flagged as exact (the count M11 asks for), and as any kind
+    flagged_exact = sum(1 for r in rows if r["label"] == "different" and r["verdict"] == "exact")
+    flagged_any = sum(1 for r in rows if r["label"] == "different" and r["verdict"] != "different")
+    out = PROJECT / "results" / "duplicates" / "labelled-pairs"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, data in (("pair_verdicts.csv", rows), ("precision_recall.csv", summary)):
+        with (out / name).open("w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, list(data[0]), lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(data)
+    run_date = run_date or datetime.date.today().isoformat()
+    info = [f"run date: {run_date}",
+            f"pairs file: {pairs_path.name} ({len(rows)} pairs)",
+            f"policy: word groups of {policy.word_group_size}, near at {policy.near_limit}, overlap at {policy.min_shared_groups} shared groups",
+            f"M11 (different pairs flagged as exact): {flagged_exact}",
+            f"different pairs flagged as any kind: {flagged_any}",
+            "these numbers are baselines, not targets"]
+    (out / "run_info.txt").write_text("\n".join(info) + "\n", encoding="utf-8", newline="\n")
+    print(f"labelled pairs: {len(rows)} (run date {run_date})")
+    for r in rows:
+        print(f"   {r['pair_id']} label {r['label']:<9} verdict {r['verdict']:<9} resemblance {r['resemblance']} shared {r['shared_groups']}")
+    for s_ in summary:
+        print(f"   {s_['label']:<9} pairs {s_['pairs']} predicted {s_['predicted']} correct {s_['correct']} "
+              f"precision {s_['precision']} recall {s_['recall']}")
+    print(f"different pairs flagged as exact: {flagged_exact}; as any kind: {flagged_any}")
+    print(f"written: {out}")
+    return rows, summary
+
+
 def main():
+    if "--pairs" in sys.argv:
+        at = sys.argv.index("--pairs")
+        run_date = sys.argv[sys.argv.index("--run-date") + 1] if "--run-date" in sys.argv else None
+        labelled_pairs(PROJECT / sys.argv[at + 1] if not Path(sys.argv[at + 1]).is_absolute() else sys.argv[at + 1], run_date)
+        return
     texts = load_texts()
     longest = sorted(texts, key=lambda i: len(texts[i].split()), reverse=True)
     part_a(texts)

@@ -5,7 +5,7 @@ Source: the project proposal (sections 5.1 to 5.3 and the sections on knowledge,
 
 ## What the glossary is
 
-The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 61 terms come from the proposal's own lists of entities and value objects. The other thirty-seven are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule).
+The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 64 terms come from the proposal's own lists of entities and value objects. The other forty are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule). Three were added on 2026-11-25, in Part A of the build plan: Node directory, Labelled pair and Held-out question.
 
 ## How to read an entry
 
@@ -38,6 +38,7 @@ Four rules keep the language clean:
 | Hierarchy | The whole tree of one organization's layers and nodes. It is the aggregate that guards the tree rules: one root, each layer one below its parent, and no children under a terminal node. | Entity | Organizational Hierarchy | org chart, tree |
 | Layer registry | The record of every layer: its number, its name and role, its member nodes, and its transfer rule. | Concept (proposal text) | Organizational Hierarchy | layer table, level list |
 | Layer membership | Which layer a node belongs to. It follows from the node's parent: the parent's layer plus one. | Concept (proposal text) | Organizational Hierarchy | layer assignment, node level |
+| Node directory | A read-only lookup that says whether a node exists and whether it is terminal. Code checks a node id through it, never by comparing strings. | Concept (added by us) | Organizational Hierarchy | node list, node table |
 
 ### Knowledge
 
@@ -64,6 +65,7 @@ Four rules keep the language clean:
 | DuplicatePolicy | The settings of duplicate detection: the size of a word group and the similarity limits for a near duplicate and an overlap. | Value object | Knowledge Management | duplicate config, detector settings |
 | ChunkStage | Where a chunk is in its life cycle: created, embedded, checked for duplicates, or indexed. | Value object | Knowledge Management | chunk status, chunk state |
 | Change summary | A short machine-written note of what changed between a version and the one registered before it. | Concept (added by us) | Knowledge Management | diff, changelog |
+| Labelled pair | Two texts with a human label (exact, near, overlap or different), used to measure duplicate detection. | Concept (added by us) | Knowledge Management | test pair, sample pair |
 
 ### RAG
 
@@ -106,6 +108,7 @@ Four rules keep the language clean:
 | Grading rule | The written rule that decides whether one answer to one answer-key question is correct. It gives the same result on every run. | Concept (added by us) | Evaluation and Judging | scoring function, checker, matcher |
 | Hard rule | A rule that must hold on every run. It is checked as pass or fail, not measured as a percentage. Example: a node never uses another node's documents. | Concept (added by us) | Evaluation and Judging | invariant, constraint, requirement |
 | Test double | A simple stand-in for a real part in a unit test, such as a stub that returns a fixed answer in place of the LLM. | Concept (added by us) | Evaluation and Judging | mock, dummy (these are kinds of test double) |
+| Held-out question | A test question kept apart from the answer key. No tuning step may read it; it is run once, at the end of Phase 14. | Concept (added by us) | Evaluation and Judging | test question, hidden question |
 
 ### Models and prompts
 
@@ -134,6 +137,5 @@ Four rules keep the language clean:
 | Issue | One word covers a problem, question, need, research gap, and operational concern. | One Issue class with a type field, not five classes. |
 | Executor | The proposal includes organizational capabilities, not only people. | Keep it as in the proposal. |
 | Terminal node | This term is not in the proposal. | Keep it, and confirm it with the supervisor. |
-| Hierarchy | The whole tree of one organization's layers and nodes. It is the aggregate that guards the tree rules: one root, each layer one below its parent, and no children under a terminal node. | Entity | Organizational Hierarchy | org chart, tree |
 | Detail level names | The proposal's four level names need fixed English names. | executive, managerial, technical summary, detailed technical. |
 | Test double | It is an engineering word, not a proposal word, and none of the proposal's bounded contexts owns it. | Keep it in Evaluation and Judging, and confirm with the supervisor. |

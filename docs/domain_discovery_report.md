@@ -10,7 +10,7 @@ Phase 1 answers four questions before any model is run: what the system is for, 
 
 - **The system** keeps knowledge inside each node of an organization, answers questions from that node's own documents with citations, tracks the node's issues, and sends a judged summary up to the layer above, all offline on small local models.
 - **The case study** is a made-up city with 7 nodes, 20 documents in 22 files, 7 issues, 6 people and 26 test questions. It contains planted problems on purpose.
-- **The vocabulary** has 61 terms with one meaning each.
+- **The vocabulary** has 64 terms with one meaning each.
 - **The success measures** are 28 metrics and 10 hard rules. No target is set yet, because targets need a baseline from Phase 2.
 - **The testing approach** separates unit tests (our rules) from evaluation (the models).
 
@@ -72,7 +72,7 @@ The proposal's 20 objectives are grouped into 8: cited answers (O1), knowledge l
 
 ## 6. The shared vocabulary
 
-The glossary in `glossary/glossary.md` gives each of 61 terms one meaning, the words to avoid, and a code name, across the proposal's 10 bounded contexts. Two examples show why it matters. A node's subject area is always called "field of activity", never "domain", because "domain" already means the whole problem area in domain-driven design. And "project proposal" always means the document, while "RFP response" means the entity that answers an RFP.
+The glossary in `glossary/glossary.md` gives each of 64 terms one meaning, the words to avoid, and a code name, across the proposal's 10 bounded contexts. Two examples show why it matters. A node's subject area is always called "field of activity", never "domain", because "domain" already means the whole problem area in domain-driven design. And "project proposal" always means the document, while "RFP response" means the entity that answers an RFP.
 
 ## 7. How success is judged
 

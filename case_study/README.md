@@ -43,3 +43,9 @@ Terminal nodes (N3, N5) have one summary document each; their insides are not mo
 ## Formats
 The files are Markdown so you can edit them easily. The proposal ingests DOC, DOCX and PDF, so in Phase 4 we will convert
 some of them (all three formats) with a small script. D19 should become an image-only PDF.
+
+## Held-out questions
+
+`heldout_questions.csv` has 10 new questions (`HQ01` to `HQ10`) about the same city, with the same columns as `answer_key.csv`. The ids start with `HQ` because `H01` to `H10` are the hard rules. Every question is answerable only from the node that asks it, or is planted as `unanswerable` or `node_boundary`. None repeats a question of the answer key.
+
+This file is held out. No tuning step may read it: not the baseline runner, not retrieval or prompt experiments, not any script that picks a setting. It is run once, at the end of Phase 14, to get an honest final score. The book says the same (Ch. 3 and 4): do not tune on your test set. A test (`tests/test_core_heldout.py`) fails if any Python file under `rag_core/`, `baseline_runner/` or `scripts/` mentions the file name.
