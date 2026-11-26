@@ -12,6 +12,8 @@ import pytest
 
 CORE = Path("rag_core")
 DOMAIN = ("shared", "organization", "knowledge", "rag", "models", "issues")
+DOMAIN = DOMAIN + ("executors",)   # Phase 9: Executor Management is domain code
+DOMAIN = DOMAIN + ("ike",)         # Phase 9: the Issue-Knowledge-Executor model is domain code
 FORBIDDEN_PACKAGES = ("rag_core.ingestion", "rag_core.infrastructure", "rag_core.workflows", "baseline_runner")
 FORBIDDEN_MODULES = {"sqlite3", "socket", "urllib", "http", "requests", "subprocess", "zipfile", "pathlib", "os", "shutil"}
 
@@ -67,4 +69,20 @@ def test_the_rag_domain_is_checked():
     checked = {p.name for p in (CORE / "rag").glob("*.py")}
     assert {"citation.py", "vector_index.py", "indexing.py", "retrieval.py"} <= checked
     for adapter in ("memory.py", "sqlite_vectors.py", "ollama_embedding.py"):
+        assert (CORE / "infrastructure" / adapter).is_file()
+
+
+def test_the_executor_domain_is_checked():
+    """Phase 9: executors and matching are domain code; the adapters live in infrastructure."""
+    checked = {p.name for p in (CORE / "executors").glob("*.py")}
+    assert {"model.py", "matching.py", "repository.py"} <= checked
+    for adapter in ("memory.py", "sqlite_executors.py", "executors_csv.py"):
+        assert (CORE / "infrastructure" / adapter).is_file()
+
+
+def test_the_ike_domain_is_checked():
+    """Phase 9: the IKE model, its rules, seed and summary are domain code; the adapters live in infrastructure."""
+    checked = {p.name for p in (CORE / "ike").glob("*.py")}
+    assert {"model.py", "rules.py", "seed.py", "summary.py", "repository.py"} <= checked
+    for adapter in ("memory_ike.py", "sqlite_ike.py"):
         assert (CORE / "infrastructure" / adapter).is_file()

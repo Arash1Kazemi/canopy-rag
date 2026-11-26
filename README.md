@@ -46,7 +46,7 @@ project/                                # this folder, named UNI-Project on disk
 ├── case_study/                         # the city: documents, issues, people, answer key
 ├── registry/                           # the node and layer registry, and what each column means
 ├── scope/                              # objectives, scope, assumptions, risks, the proposal's 20 objectives mapped to 8
-├── glossary/                           # 95 terms in 8 areas, with avoid-words and code names
+├── glossary/                           # 109 terms in 8 areas, with avoid-words and code names
 ├── metrics/                            # 28 metrics, grading rules, key facts, 10 hard rules
 ├── models/                             # model_registry.csv: the models, their sources and what our runs showed
 ├── prompts/                            # versioned prompt templates and prompt_registry.csv

@@ -26,6 +26,7 @@ Terminal nodes (N3, N5) have one summary document each; their insides are not mo
 | `documents_manifest.csv` | One row per Markdown file: node, language, version, planted problem, and the real file made from it (`real_file`, `real_format`) |
 | `issues.csv` | 7 issues, 3 of them sub-issues of I01 |
 | `people.csv` | 6 executors with expertise |
+| `ike_seed_relations.csv` | 38 IKE relations (Phase 9) taken from the files above: 15 stated by `issues.csv` and `people.csv`, 23 stated clearly by a document (named in `evidence`) |
 | `answer_key.csv` | 26 test questions with expected answers and sources; each is answerable from the one node named in `asked_at_node` |
 
 ## Problems planted on purpose

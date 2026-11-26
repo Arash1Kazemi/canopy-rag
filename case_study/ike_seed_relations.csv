@@ -1,0 +1,39 @@
+relation_type,source_kind,source_id,target_kind,target_id,node_id,evidence,basis
+issue_decomposes_into_issue,issue,I01,issue,I02,N6,,issues.csv parent_issue_id
+issue_decomposes_into_issue,issue,I01,issue,I03,N6,,issues.csv parent_issue_id
+issue_decomposes_into_issue,issue,I01,issue,I04,N6,,issues.csv parent_issue_id
+executor_has_expertise,executor,P01,expertise,route planning,N6,,people.csv expertise
+executor_has_expertise,executor,P01,expertise,bus intervals,N6,,people.csv expertise
+executor_has_expertise,executor,P02,expertise,bus fleet,N4,,people.csv expertise
+executor_has_expertise,executor,P02,expertise,maintenance scheduling,N4,,people.csv expertise
+executor_has_expertise,executor,P03,expertise,ridership statistics,N6,,people.csv expertise
+executor_has_expertise,executor,P03,expertise,survey analysis,N6,,people.csv expertise
+executor_has_expertise,executor,P04,expertise,passenger surveys,N6,,people.csv expertise
+executor_has_expertise,executor,P04,expertise,complaints,N6,,people.csv expertise
+executor_has_expertise,executor,P05,expertise,leak detection,N2,,people.csv expertise
+executor_has_expertise,executor,P05,expertise,network losses,N2,,people.csv expertise
+executor_has_expertise,executor,P06,expertise,air quality,N1,,people.csv expertise
+executor_has_expertise,executor,P06,expertise,emissions,N1,,people.csv expertise
+issue_related_to_knowledge,issue,I01,knowledge_item,D15,N6,D15,its goal is to bring peak load under the 85% limit; it names Route 7 as the most overcrowded
+issue_related_to_knowledge,issue,I01,knowledge_item,D16,N6,D16,passengers name Route 7 as the most overcrowded at peak
+issue_related_to_knowledge,issue,I01,knowledge_item,D18,N6,D18,5 of the 8 Q2 complaints are about Route 7
+issue_related_to_knowledge,issue,I02,knowledge_item,D11,N6,D11,the tap-in data ranks Route 12 as the busiest route
+issue_related_to_knowledge,issue,I02,knowledge_item,D16,N6,D16,the passenger survey ranks Route 7 as the busiest route
+issue_related_to_knowledge,issue,I03,knowledge_item,D15,N6,D15,proposes the 8-week pilot with 6 extra buses on Route 7
+issue_related_to_knowledge,issue,I03,knowledge_item,D17,N6,D17,reports the results of the Route 7 pilot
+issue_related_to_knowledge,issue,I03,knowledge_item,D19,N6,D19,approves the pilot and caps its budget
+issue_related_to_knowledge,issue,I03,knowledge_item,D20,N6,D20,estimates the cost of the pilot
+issue_related_to_knowledge,issue,I04,knowledge_item,D11,N6,D11,the tap-in counts leave out free-pass holders
+issue_related_to_knowledge,issue,I04,knowledge_item,D16,N6,D16,off-peak travellers are under-represented in the survey
+issue_related_to_knowledge,issue,I05,knowledge_item,D13,N4,D13,18 buses overdue for service; 4 vacant mechanic positions
+issue_related_to_knowledge,issue,I06,knowledge_item,D06,N1,D06,NO2 mean 39 in H1 2025 against a target of 35
+issue_related_to_knowledge,issue,I07,knowledge_item,D08,N2,D08,22% of water lost to leaks; target 12% by 2030
+executor_related_to_knowledge,executor,P01,knowledge_item,D15,N6,D15,named as project lead
+executor_related_to_knowledge,executor,P01,knowledge_item,D17,N6,D17,named as author
+executor_related_to_knowledge,executor,P01,knowledge_item,D20,N6,D20,named as author
+executor_related_to_knowledge,executor,P01,knowledge_item,D19,N6,D19,attended and signed the minutes
+executor_related_to_knowledge,executor,P02,knowledge_item,D19,N6,D19,attended and signed the minutes
+executor_related_to_knowledge,executor,P03,knowledge_item,D19,N6,D19,attended and signed the minutes
+executor_related_to_knowledge,executor,P04,knowledge_item,D19,N6,D19,attended and signed the minutes
+executor_can_follow_issue,executor,P03,issue,I02,N6,D19,action: compare the tap-in ridership data with the survey results
+executor_can_follow_issue,executor,P01,issue,I03,N6,D15,project lead of the Route 7 pilot proposal

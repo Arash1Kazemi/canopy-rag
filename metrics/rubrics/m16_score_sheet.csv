@@ -1,0 +1,8 @@
+issue_id,node_id,issue_title,solution_file,model,prompt,cites_sources,sources_correct,gives_a_path,names_limits,names_executor,says_when_knowledge_is_missing,stays_in_node,rating,rater,rated_on,notes
+I01,N6,Route 7 overcrowded at peak,,,,,,,,,,,,,,
+I02,N6,Verify ridership data,,,,,,,,,,,,,,
+I03,N6,Pilot extra buses on Route 7,,,,,,,,,,,,,,
+I04,N6,Re-survey passengers,,,,,,,,,,,,,,
+I05,N4,Bus maintenance backlog,,,,,,,,,,,,,,
+I06,N1,NO2 target not reached,,,,,,,,,,,,,,
+I07,N2,Water loss above target,,,,,,,,,,,,,,
