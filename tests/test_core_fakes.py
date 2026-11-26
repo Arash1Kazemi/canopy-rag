@@ -43,3 +43,19 @@ def test_the_hashing_embedder_is_deterministic_and_records_its_calls():
     assert embedder.embed_query("135 buses") == first[0]
     assert embedder.batches == [2] and embedder.queries == ["135 buses"]
     assert HashingEmbedder().embed([""]) == [[0.0] * 64]
+
+
+def test_the_sequence_model_returns_replies_in_order_then_repeats_the_last_one():
+    from rag_core.fakes import SequenceLanguageModel
+    model = SequenceLanguageModel("a", "b", model_tag="x")
+    assert [model.generate("p1"), model.generate("p2"), model.generate("p3")] == ["a", "b", "b"]
+    assert model.prompts == ["p1", "p2", "p3"] and model.model_tag == "x"
+
+
+def test_the_sequence_model_raises_a_reply_that_is_an_error():
+    import pytest
+    from rag_core.fakes import SequenceLanguageModel
+    model = SequenceLanguageModel("a", ConnectionError("no server"))
+    assert model.generate("p") == "a"
+    with pytest.raises(ConnectionError):
+        model.generate("p")

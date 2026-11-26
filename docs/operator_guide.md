@@ -342,9 +342,44 @@ What to compare (open `comparison.md`, then the rows file):
 - `Q03` (the duplicate): the baseline scored M12 0.000 on it. The core has only one D12 file, so the answer cannot cite the copy; if `M12` rises, say that this is the reason (the planted problem is handled before retrieval), not a better model.
 - `Q06`: does the answer name both routes, with P01 and with P13? Compare the two runs on this question first, then on all 26: a prompt is promoted only if nothing else gets worse (A47).
 - `M06` to `M08`: retrieval alone. The baseline is M06 1.0, M07 0.573, M08 1.0. If they drop, the core's chunks or filter differ from the baseline's.
-- `M22` to `M24`: speed. Compare with 0.21 s, 37.5 tokens per second and 0.70 s median. `M05` is `not measured`: the judge comes in Phase 10.
+- `M22` to `M24`: speed. Compare with 0.21 s, 37.5 tokens per second and 0.70 s median. `M05` is `not measured`: the judge exists now (part G), but the 26 answers are not judged by it yet.
 
 Then tell me the folder names. The evaluation report for `docs/` (the table, the questions that changed and why) is written from the saved files, not from memory.
+
+### G. Phase 10: the judge and M20
+
+Status: prepared, not run (2026-11-26). The code is ready and tested with a stub judge (`rag_core/cli_judge.py`, `rag_core/judging/`, `tests/test_core_cli_judge.py`). It needs the server (Part 1) and `phi4-mini:3.8b`, which you already have from Phase 2. Nothing is downloaded. Book: chapters 3 and 4 (AI as a judge). The prompt P14 has never run on a real model, so the first run may show that it needs a change; that is a result, not a failure.
+
+What the command does: it judges one text as an output that goes to one layer, with the 20-point rubric R1 (`rag_core/judging/rubric.py`). The threshold is the minimum judge score of that layer in `registry/layer_registry.csv` (18 for layers 0 to 2). It runs the judge twice on the same prompt, stores both runs in the database, and prints whether the two decisions agree. Exit code 0 means it worked (a pass, a fail and a failed judgment are all results). Exit code 2 means it could not run: the server is not running, the model is not pulled, the layer receives nothing, a file is missing, or the run id is already stored.
+
+1. Make three small texts. Write them yourself, in a folder `results/judge/` (the folder is yours, not part of the case study):
+
+- `good.md`: `The Transit Agency has 135 buses [D10_bus_fleet_inventory_v2].`
+- `wrong.md`: `The Transit Agency has 120 buses [D10_bus_fleet_inventory_v2].` (the old number from version 1)
+- `unsupported.md`: `The Transit Agency has 135 buses and will buy 40 electric buses next year.` (the second claim is in no document)
+
+2. Judge each one against the real source, as a package that goes to layer 1 (from the Transit Agency to the Transport Department). Use a new run id for each:
+
+```powershell
+$src = "case_study/documents/N4_transit_agency/D10_bus_fleet_inventory_v2.md"
+& $py -m rag_core judge --text results/judge/good.md --layer 1 --source $src --request "Report the size of the bus fleet." --run-id g1-good
+& $py -m rag_core judge --text results/judge/wrong.md --layer 1 --source $src --request "Report the size of the bus fleet." --run-id g1-wrong
+& $py -m rag_core judge --text results/judge/unsupported.md --layer 1 --source $src --request "Report the size of the bus fleet." --run-id g1-unsupported
+```
+
+3. Read each output. Look at these things, in this order:
+
+- Is a repeat a `FAILED JUDGMENT`? Then the model did not reply with the exact JSON the parser needs (a code fence and text around the JSON are the likely causes). Copy the raw reply it prints. Do not edit the parser to accept it; tell me, and we decide (decision A70).
+- Does `good.md` pass and `wrong.md` fail? If the judge gives `wrong.md` 18 or more, the judge cannot be trusted for this task yet. That is the most useful thing the run can show.
+- `Repeatability (M20)`: `same decision: yes` for all three is what you hope for (temperature 0 and seed 42 make the two runs very likely identical). A `no` is a finding.
+
+4. Look at everything that was stored (the raw replies are there):
+
+```powershell
+& $py -c "import sqlite3; c=sqlite3.connect('data/project.sqlite'); [print(r) for r in c.execute('select run_id, repeat, outcome, total, threshold, parse_error from judge_scores')]"
+```
+
+5. M20 needs about 20 packages, and they come from Phase 11. For now this run is only a smoke test, so write no number in `metrics/metrics.csv`. Tell me the three run ids and what you saw. To see a different threshold, change `min_judge_score` of one layer in `registry/layer_registry.csv` and run the same command with `--layer` of that layer (the supervisor decides the real value).
 
 ## Executors and IKE
 

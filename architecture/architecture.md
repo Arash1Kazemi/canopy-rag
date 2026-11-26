@@ -19,7 +19,7 @@ The system is split into ten bounded contexts, the proposal's own list. Each con
 | Executor Management | Executor profiles, expertise, matching | `Executor` | Phase 9 | planned |
 | Issue-Knowledge-Executor | Typed relations between issues, knowledge and executors | the IKE model (`ike_model`; its classes come in Phase 9) | Phase 9 | planned |
 | Knowledge Transfer | Cycles, transfer packages, detail levels. The `TransferRule` value is in the shared kernel; the layer registry stores it | `TransferPackage` | Phase 11 | planned |
-| Evaluation and Judging | Rubrics, judge scores, thresholds | `JudgeScore` | Phase 10 | planned |
+| Evaluation and Judging | Rubrics, judge scores, thresholds | `JudgeScore` | Phase 10 (built) | `rag_core/judging/`, `rag_core/workflows/judge_prompts.py` |
 | RFP and Proposal Management | RFPs, RFP responses, feedback | `RFP` | Phase 13 | planned |
 | Model and Prompt Management | Model registry, prompt templates, model ports | none (registries) | Phase 2 data, Phase 3 ports | `rag_core/models/`, `models/`, `prompts/` |
 
@@ -128,6 +128,7 @@ rag_core/
 ├── models/ports.py               EmbeddingModel, LanguageModel, VisionModel
 ├── ingestion/                    formats, extractors, samples, the ingestion use case, case-study requests
 ├── issues/                       Issue, IssueStatus, progress, node rules, comparison, suggestions (Phase 7)
+├── judging/                      JudgeRubric, the strict score parser, the threshold per layer, JudgeScore, the judge use case (Phase 10)
 ├── workflows/                    the node and layer workflows (Phase 6), the issue workflows (Phase 7), the question workflow and the answer prompts (Phase 8)
 ├── infrastructure/               memory, SQLite (knowledge, hierarchy, issues, vectors), registry CSV, CSV export, Ollama (embedding, language, vision)
 ├── rag_wiring.py, evaluation.py, cli_rag.py     plain modules on top of the layers: the case-study wiring, the Phase 8D evaluation, the index, ask and evaluate commands
@@ -137,7 +138,7 @@ rag_core/
 
 `baseline_runner/` stays: it is the Phase 2 experiment harness, and its results are the baseline. Phase 8 put retrieval and answering into `rag_core` and added `e3 --engine core` to the runner (decision A48). The full move, where the runner becomes a thin evaluation script, is not done: the grading and metric code still lives in `baseline_runner/` and `rag_core/evaluation.py` imports it. Moving it is a later step, best taken in Phase 14 when the held-out questions are used.
 
-## 10. Decisions made in Phases 3 to 8
+## 10. Decisions made in Phases 3 to 10
 
 | # | Decision | Why | To confirm |
 | --- | --- | --- | --- |
@@ -208,3 +209,11 @@ rag_core/
 | A65 | `Issue.parent_issue_id` and `Issue.blocked_by` own those links; the IKE edges mirror them and are not synced automatically | One owner per fact | yes |
 | A66 | The IKE seed (`case_study/ike_seed_relations.csv`, 38 relations) holds only relations stated in the records or a named document | No invented facts | yes |
 | A67 | The M15 and M16 rubrics (`metrics/rubrics/`) use one rater, and a claim with no support scores at most 2 | A simple first version of a human form | yes |
+| A68 | The rubric R1 version 1 is the sample rubric of proposal 16.1 as written: faithfulness 5, completeness 4, detail fit 3, uncertainty and gaps 3, clarity 2, citability 2, no unsupported claim 1, total 20 (`rag_core/judging/rubric.py`). A rubric is versioned and never edited: a change is a new version, and every stored score names the rubric and version that made it | The proposal gives the criteria and the points only as a sample ("نمونه"); the supervisor may change them (Phase 14 refines the rubrics) | yes |
+| A69 | The threshold is stored per layer: it is `min_judge_score` in the layer registry (`registry/layer_registry.csv`), 18 for layers 0 to 2. A score passes when it is at least the threshold of the layer that receives the output (`--layer N` is that layer). The proposal default 18 is used only when a layer that receives packages has a rule with no score. A layer with no rule receives nothing and is refused: there is no silent fallback number | The supervisor changes the number in one place, per layer; "18 for every layer" is still an open question | yes |
+| A70 | The score parser is strict: the reply must be one JSON object (`scores`, `total`, `explanation`, and optional `missing_information`, `unsupported_claims`, `suggested_fix`) and nothing else. No repair: a code fence, text around the object, a float, a number as text, a missing or extra criterion, a score above its maximum or below 0, a total that is not the sum, a total outside 0 to 20, an unknown field, or a repeated key is a failed judgment, which is stored with its reason and is never a pass | Proposal risk table: use a structured rubric and a fixed score schema; a pass must never come from a guess. Small models may often wrap JSON in a code fence: the first real run shows how often, and a repair step would be a new decision | yes |
+| A71 | The system, not the model, decides the outcome: pass, fail or invalid, from the total and the stored threshold. A "verdict" or "passed" field written by the model is refused. `JudgeScore` cannot be built as a pass when the reply was invalid or the total is below its threshold | Hard rule H05 starts here: a package below the threshold is never sent, and the model must not be able to argue its way past it | yes |
+| A72 | Repeatability (M20): run the judge twice (default) on the same prompt and the same settings. The decision agrees when every repeat is valid and the pass or not-pass decision is the same. A failed judgment never counts as agreement, so two garbage replies do not look repeatable. Equal totals are reported separately. M20 over many items is the share of items whose decision agrees | M20 is defined as the same decision on the same input; counting garbage as agreement would hide a broken judge | yes |
+| A73 | A new prompt P14 (`prompts/judge_rubric_v1.txt`, task judge) is the rubric judge: five blanks (rubric, detail level, request, source, output to judge) and a reply of one JSON object. P04, the Phase 2 reference judge, stays as it is. Run settings are the project's (temperature 0, seed 42) with a longer reply (512 tokens). The prompt has not been run on a real model | P04 judges one fact against a reference; the proposal's judge scores a rubric against the source, the request and the target layer | yes |
+| A74 | Judgments are kept in the `judge_scores` table of `data/project.sqlite`, one row per repeat with the run id, prompt id and version, rubric id and version, model tag, target layer, threshold, a SHA-256 of the judged text, the raw reply, the parsed scores, the outcome and the time. A run is stored whole or not at all, a stored run is never changed, and a run id is never reused. A model that cannot be reached is a setup error (exit 2): nothing is stored | Same rule as H04 for versions; the raw reply is the evidence for M18 to M20 | yes |
+| A75 | The judge defaults to the same local model as the answer model (phi4-mini). Judging its own kind of output is a known bias (book chapters 3 and 4); the judge model can be changed with `--llm` and is stored with each score. Pass or fail is not trusted before M18 and M19 compare the judge with a human on about 20 packages | Only small models fit the laptop; a second judge model is a Phase 14 comparison | yes |

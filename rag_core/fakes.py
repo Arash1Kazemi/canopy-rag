@@ -98,6 +98,24 @@ class HashingEmbedder:
         return self.vector(text)
 
 
+class SequenceLanguageModel:
+    """A stub LLM for the judge tests (Phase 10): it returns the given replies one after the other (the last one again when
+    they run out) and remembers every prompt. Two different replies make a judge that does not repeat itself. A reply that is
+    an Exception is raised instead of returned, like a model that cannot be reached. `model_tag` is stored with each score."""
+
+    def __init__(self, *replies, model_tag="stub-judge"):
+        self.replies = list(replies)
+        self.model_tag = model_tag
+        self.prompts = []
+
+    def generate(self, prompt):
+        self.prompts.append(prompt)
+        reply = self.replies[min(len(self.prompts), len(self.replies)) - 1]
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+
 class EchoLanguageModel:
     """A fake LLM for a model-free smoke run (`--fake-models`): it answers with the first entry of the context, cited
     with its file stem, or refuses when there is none. It reads the prompt the way the Phase 2 FakeClient does (the

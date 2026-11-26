@@ -28,6 +28,10 @@
                                                          graded like the baseline and compared with results/e3-first
                                                          (details in rag_core/cli_rag.py; exit code 2 if Ollama is unreachable)
 
+    python -m rag_core judge --text FILE --layer N [--runs 2] [--source FILE] [--request "..."] [--run-id ID]
+                                                         judge a text with the rubric and the threshold of layer N (Phase 10;
+                                                         details in rag_core/cli_judge.py; exit code 2 if Ollama is unreachable)
+
 ingest-case-study and ingest-file take --detect-duplicates: near duplicates and overlaps become notes in the report
 and a duplicates.csv is written next to the database.
 """
@@ -354,6 +358,8 @@ def main(argv=None):
     add_rag_commands(sub)
     from .cli_executors import add_executor_commands
     add_executor_commands(sub)
+    from .cli_judge import add_judge_commands
+    add_judge_commands(sub)
 
     args = parser.parse_args(argv)
     return args.run(args) or 0

@@ -14,6 +14,7 @@ CORE = Path("rag_core")
 DOMAIN = ("shared", "organization", "knowledge", "rag", "models", "issues")
 DOMAIN = DOMAIN + ("executors",)   # Phase 9: Executor Management is domain code
 DOMAIN = DOMAIN + ("ike",)         # Phase 9: the Issue-Knowledge-Executor model is domain code
+DOMAIN = DOMAIN + ("judging",)     # Phase 10: the rubric, the score parser, the thresholds and the judge use case are domain code
 FORBIDDEN_PACKAGES = ("rag_core.ingestion", "rag_core.infrastructure", "rag_core.workflows", "baseline_runner")
 FORBIDDEN_MODULES = {"sqlite3", "socket", "urllib", "http", "requests", "subprocess", "zipfile", "pathlib", "os", "shutil"}
 
@@ -86,3 +87,20 @@ def test_the_ike_domain_is_checked():
     assert {"model.py", "rules.py", "seed.py", "summary.py", "repository.py"} <= checked
     for adapter in ("memory_ike.py", "sqlite_ike.py"):
         assert (CORE / "infrastructure" / adapter).is_file()
+
+
+def test_the_judging_domain_is_checked():
+    """Phase 10: the rubric, parser, threshold policy, judge use case and stored scores are domain code; the adapters live in
+    infrastructure and the prompt loader in workflows."""
+    checked = {p.name for p in (CORE / "judging").glob("*.py")}
+    assert {"rubric.py", "parser.py", "threshold.py", "model.py", "prompt.py", "judge.py", "repository.py"} <= checked
+    for adapter in ("memory_judging.py", "sqlite_judging.py"):
+        assert (CORE / "infrastructure" / adapter).is_file()
+    assert (CORE / "workflows" / "judge_prompts.py").is_file()
+
+
+def test_the_judge_never_imports_the_model_adapter():
+    """The judge takes the LanguageModel port as an argument (unit-testing rule 1); only the command line builds the Ollama adapter."""
+    for path in (CORE / "judging").glob("*.py"):
+        assert not any(name.startswith(("rag_core.infrastructure", "baseline_runner")) or name.endswith("ollama_language")
+                       for name in imports_of(path)), path
