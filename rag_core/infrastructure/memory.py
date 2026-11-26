@@ -51,3 +51,41 @@ class InMemoryHierarchyRepository:
 
     def save(self, hierarchy):
         self._hierarchy = copy.deepcopy(hierarchy)
+
+
+class InMemoryIssueRepository:
+    """Issues in a dict. An Issue is frozen, so storing the object itself is safe. `add_all` checks every id before it
+    stores anything, so a group is stored whole or not at all, like the SQLite transaction."""
+
+    def __init__(self, issues=()):
+        self._issues = {}
+        self.add_all(issues)
+
+    def get(self, issue_id):
+        return self._issues.get(str(issue_id))
+
+    def all_issues(self):
+        return list(self._issues.values())
+
+    def is_empty(self):
+        return not self._issues
+
+    def add_all(self, issues):
+        issues = list(issues)
+        ids = [str(i.issue_id) for i in issues]
+        if len(set(ids)) != len(ids):
+            raise ValueError("the same issue id appears twice in one group")
+        stored = [i for i in ids if i in self._issues]
+        if stored:
+            raise ValueError(f"issue id already stored: {', '.join(stored)}")
+        missing = [str(i.parent_issue_id) for i in issues
+                   if i.parent_issue_id is not None and str(i.parent_issue_id) not in self._issues and str(i.parent_issue_id) not in ids]
+        if missing:   # the same refusal as the SQLite foreign key
+            raise ValueError(f"unknown parent issue: {', '.join(missing)}")
+        for issue in issues:
+            self._issues[str(issue.issue_id)] = issue
+
+    def update(self, issue):
+        if str(issue.issue_id) not in self._issues:
+            raise ValueError(f"issue {issue.issue_id} is not stored, so it cannot be updated")
+        self._issues[str(issue.issue_id)] = issue

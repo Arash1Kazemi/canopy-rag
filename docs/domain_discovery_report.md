@@ -10,7 +10,7 @@ Phase 1 answers four questions before any model is run: what the system is for, 
 
 - **The system** keeps knowledge inside each node of an organization, answers questions from that node's own documents with citations, tracks the node's issues, and sends a judged summary up to the layer above, all offline on small local models.
 - **The case study** is a made-up city with 7 nodes, 20 documents in 22 files, 7 issues, 6 people and 26 test questions. It contains planted problems on purpose.
-- **The vocabulary** has 64 terms with one meaning each.
+- **The vocabulary** has 81 terms with one meaning each.
 - **The success measures** are 28 metrics and 10 hard rules. No target is set yet, because targets need a baseline from Phase 2.
 - **The testing approach** separates unit tests (our rules) from evaluation (the models).
 

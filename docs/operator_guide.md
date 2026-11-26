@@ -194,7 +194,7 @@ After the models are downloaded, the experiments do not need the internet.
 
 ## Prepared runs (not run yet)
 
-Status for every run in this section: prepared, not run (2026-11-25). Nothing here has been run by the agent. Each part says what the code already supports and what needs a change first. Do the parts in order, and do not start a part until the one before it is done.
+Status for every run in this section: prepared, not run (2026-11-26). Nothing here has been run by the agent. Each part says what the code already supports and what needs a change first. Do the parts in order, and do not start a part until the one before it is done.
 
 ### A. Rerun the baseline with `qwen3:4b-instruct`
 
@@ -278,6 +278,33 @@ The baseline already exists: `results\e3-first` is `words80` with `k` 3 and the 
 ```
 
 Compare `results\e3-sections80\e3_summary.csv` with the `phi4-mini` row of `results\e3-first\e3_summary.csv`. Look at `M01`, `M02`, `M03` and `M12`. Also look at `M24_median`, because `sections80` may make the chunks shorter. Add `--models qwen3-4b-instruct` to both runs only after part A is done. Keep `--k 3` and the embedding the same in both runs; otherwise the comparison is not fair.
+
+### E. Measure M15: sub-issue suggestions for I01
+
+Status: prepared, not run (2026-11-26). The code is ready (`rag_core/workflows/issues.py`, prompt P12 in `prompts/suggest_sub_issues_v1.txt`). It needs the Ollama server (Part 1) and the chat model from Part 2. Nothing is saved to the database by this step.
+
+```powershell
+& $py -m rag_core suggest-sub-issues --issue I01 --out results/issues/m15_I01_suggestions.csv
+```
+
+Then read the CSV and match each suggestion by hand against I02, I03 and I04 (the sub-issues that already exist). Count the matches. That count is the M15 baseline, with the run date and the model tag as its source. Do not write a target. To keep a suggestion, use `accept-sub-issues` (it saves the chosen ones in one transaction).
+
+## Real files (DOCX and PDF) and `--ocr`
+
+The case study keeps Markdown as the source. `scripts/make_real_files.py` makes the real files the manifest names (D04 and D13 as DOCX, D02 and D17 as text PDF, D19 as an image-only PDF):
+
+```powershell
+& $py -I scripts/make_real_files.py
+& $py -I scripts/make_real_files.py --check
+```
+
+The first command makes the files and checks them. `--check` only checks the files that are there. Then ingest them. D19 has no text layer, so it needs the vision model (Ollama running, `glm-ocr:q8_0` pulled):
+
+```powershell
+& $py -m rag_core ingest-case-study --ocr
+```
+
+Add `--markdown` to read the Markdown files only. Note: `data/project.sqlite` is stale (its manifest has no `real_file` column), so the command prints a note and reads Markdown. Set `$env:RAG_DATA_DB` to a new file path to read the real files.
 
 ## Troubleshooting
 

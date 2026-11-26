@@ -100,17 +100,50 @@ Questions it answers: `active_version`, `version(tag)`, `version_with_text(hash)
 
 Rules: an answer cites file stems in square brackets or says "insufficient knowledge" (H09); retrieval for a node returns only that node's active chunks (H01). The citation rules are in `architecture/citation_model.md`.
 
-## Issue Management, planned (Phase 7)
+## Issue Management (`rag_core/issues/`), built in Phase 7
 
-**Aggregate: Issue** (root), with its SubIssues inside it.
+**Aggregate: Issue** (root). Each issue is its own aggregate root; a sub-issue is an Issue with a parent (proposal 12.2), so `SubIssue` is the role, not a separate class. Rules that span several issues are domain functions in `issues/rules.py`, checked before anything is saved.
 
 | Member | Kind | Fields |
 | --- | --- | --- |
-| Issue | entity, root | id, node, type (problem, question, need, research gap, operational concern), title, description, metadata, status, sub-issues, relative position |
-| SubIssue | entity | id, parent issue, title, status, progress |
+| Issue | entity, root | `issue_id`, `node_id`, `title`, `description`, `status`, `parent_issue_id`, `issue_type`, `field_of_activity`, `priority`, `category`, `created_at`, `position` (among siblings), `blocked_by`, `metadata` (free map), `knowledge_ids`, `executor_ids`, `proposed_solution`, `research_completed`, `review_approved` |
+| IssueIdentifier | value | `I` and digits, such as I01 |
+| IssueStatus | value | new, analyzing, knowledge_identified, executor_identified, solution_proposed, in_progress, awaiting_decision, solved, unsolved, archived (proposal 14.1) |
 | ProgressPercentage | value | a whole number from 0 to 100 |
+| ProgressWeights | value | one whole-number weight per progress factor, adding up to 100 (from `config/issue_progress_weights.csv`) |
+| RelativePosition | value | parent, position, siblings, sub-issues, blocked by, blocks, same category (proposal 12.3) |
+| IssueDraft | value | node, title, description: a new issue before it is saved |
+| IssueMatch | value | issue, score, word score, shared words |
+| SubIssueSuggestion | value | title, description: proposed by the LLM, saved only when a person accepts it |
 
-Rules to own: a sub-issue stays in its parent's node; H07 (status and progress follow fixed rules: the same input gives the same result). The issue data of the city is in `case_study/issues.csv`.
+Field values: `issue_type` is problem, question, need, research_gap or operational_concern; `priority` is not_set, low, medium or high (decision A32); `field_of_activity` defaults to the node's.
+
+Allowed status moves (decision A30, `issues/status.py`):
+
+| From | To |
+| --- | --- |
+| new | analyzing, archived |
+| analyzing | knowledge_identified, executor_identified, solution_proposed, unsolved, archived |
+| knowledge_identified | analyzing, executor_identified, solution_proposed, unsolved, archived |
+| executor_identified | analyzing, knowledge_identified, solution_proposed, unsolved, archived |
+| solution_proposed | analyzing, in_progress, awaiting_decision, unsolved, archived |
+| in_progress | analyzing, awaiting_decision, solved, unsolved |
+| awaiting_decision | solution_proposed, in_progress, solved, unsolved |
+| solved | analyzing (reopened), archived |
+| unsolved | analyzing (reopened), archived |
+| archived | nothing |
+
+Rules:
+
+1. The node exists, checked through the node directory (A23).
+2. A sub-issue is in its parent's node; a blocked-by link stays inside one node (A33).
+3. No cycle in parent links or in blocked-by links; siblings have different positions.
+4. H07: the status changes only through the table above; progress is computed by `compute_progress` from the seven factors of 14.1 and the weights. Only a solved issue shows 100 (A31). The same input gives the same output, in any order.
+5. A draft is compared only with issues of its own node (A34).
+
+**Use cases** (`rag_core/workflows/issues.py`): `IssueService` creates an issue, changes a status, adds a blocked-by link, compares a draft, suggests sub-issues (LLM port and prompt P12) and saves the accepted ones in one transaction (A35); it also answers progress and relative position.
+
+**Repository:** `IssueRepository` with `get`, `all_issues`, `add_all` (all or nothing), `update`, `is_empty`. Adapters: `InMemoryIssueRepository`, `SqliteIssueRepository` (table `issues` in `data/project.sqlite`, A36). The issue data of the city is in `case_study/issues.csv`, imported once.
 
 ## Executor Management, planned (Phase 9)
 

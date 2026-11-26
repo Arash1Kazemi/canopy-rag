@@ -21,3 +21,14 @@ def test_the_spy_runner_writes_the_converted_file(tmp_path):
     runner = SpyRunner(b"docx bytes")
     runner(["soffice", "--headless", "--convert-to", "docx", "--outdir", str(tmp_path), "C:/x/old.doc"])
     assert (tmp_path / "old.docx").read_bytes() == b"docx bytes" and len(runner.calls) == 1
+
+
+def test_the_stub_language_model_replies_and_remembers():
+    from rag_core.fakes import StubLanguageModel
+    model = StubLanguageModel("- a | b")
+    assert model.generate("p1") == "- a | b" and model.prompts == ["p1"]
+    failing = StubLanguageModel(error=ConnectionError("no server"))
+    import pytest
+    with pytest.raises(ConnectionError):
+        failing.generate("p2")
+    assert failing.prompts == ["p2"]

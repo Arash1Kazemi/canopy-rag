@@ -685,7 +685,7 @@ EXPERIMENT_COLUMNS = ["exp_id", "name", "task", "question", "metrics", "prompts"
 PROBE_COLUMNS = ["probe_id", "question_id", "candidate", "label", "gr1_blind_spot"]
 MODEL_TASKS = {"embedding", "llm", "lvm"}
 MODEL_STATUSES = {"candidate", "shortlisted", "baseline", "rejected"}
-PROMPT_TASKS = {"answer", "read_page", "judge", "embed_query", "embed_document"}
+PROMPT_TASKS = {"answer", "read_page", "judge", "embed_query", "embed_document", "suggest_sub_issues"}
 FREE_VRAM_GB = 2.9    # 4096 MiB of GPU memory minus the 1168 MiB that Windows used when we measured
 MEMORY_FACTOR = 1.2   # weights plus about 20 percent: the rough rule of chapter 7 of the book
 

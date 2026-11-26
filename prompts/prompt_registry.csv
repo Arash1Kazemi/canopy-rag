@@ -10,3 +10,4 @@ P08,embed_document,1,embed_document_embeddinggemma_v1.txt,text,embeddinggemma-30
 P09,embed_query,1,embed_query_qwen3_v1.txt,text,qwen3-embedding-0.6b,"Instruct then Query format from the model card, with its own example task. There is no space after Query:."
 P10,embed_document,1,embed_document_plain_v1.txt,text,qwen3-embedding-0.6b;bge-m3,"No instruction on documents (the model cards of both models)."
 P11,embed_query,1,embed_query_plain_v1.txt,text,bge-m3,"bge-m3 needs no instruction on queries (model card)."
+P12,suggest_sub_issues,1,suggest_sub_issues_v1.txt,description;field_of_activity;title,task:llm,"Phase 7: suggest 3 to 5 sub-issues, one per line as title | description. Never shows the existing sub-issues, so M15 is fair."

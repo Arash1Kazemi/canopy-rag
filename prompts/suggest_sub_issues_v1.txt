@@ -1,0 +1,10 @@
+You help a team split an organizational issue into smaller sub-issues.
+
+Field of activity: {{field_of_activity}}
+Issue title: {{title}}
+Issue description: {{description}}
+
+Suggest 3 to 5 sub-issues. Each sub-issue is one concrete step or question that helps solve the issue.
+Use only the facts given above. Do not invent numbers, names or dates.
+Write one sub-issue per line in exactly this form, and nothing else:
+- short title | one sentence that says what to do and why

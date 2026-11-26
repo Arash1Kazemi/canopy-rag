@@ -15,7 +15,7 @@ The system is split into ten bounded contexts, the proposal's own list. Each con
 | Organizational Hierarchy | Nodes, layers, parent and child, terminal nodes | `Hierarchy` | Phases 3 and 6 (built) | `rag_core/organization/`, `rag_core/workflows/` |
 | Knowledge Management | Knowledge items, versions, chunks, metadata, source locations, duplicates | `KnowledgeItem` | Phases 3 to 5 | `rag_core/knowledge/`, `rag_core/ingestion/` |
 | RAG Core | Retrieval, context assembly, prompts, cited answers | none (domain services) | Phase 4 citations, Phase 8 the rest | `rag_core/rag/` |
-| Issue Management | Issues, sub-issues, status, progress, priority | `Issue` | Phase 7 | Phase 7, in progress; code in `rag_core/issues/` |
+| Issue Management | Issues, sub-issues, status, progress, priority, comparison, relative position | `Issue` | Phase 7 (built) | `rag_core/issues/`, `rag_core/workflows/issues.py` |
 | Executor Management | Executor profiles, expertise, matching | `Executor` | Phase 9 | planned |
 | Issue-Knowledge-Executor | Typed relations between issues, knowledge and executors | the IKE model (`ike_model`; its classes come in Phase 9) | Phase 9 | planned |
 | Knowledge Transfer | Cycles, transfer packages, detail levels. The `TransferRule` value is in the shared kernel; the layer registry stores it | `TransferPackage` | Phase 11 | planned |
@@ -55,7 +55,7 @@ Rules of the map:
 
 | Layer | Folder | Holds | May import |
 | --- | --- | --- | --- |
-| Domain | `shared/`, `organization/`, `knowledge/`, `rag/` | Entities, value objects, aggregates, domain services, repository interfaces | the standard library and other domain modules only |
+| Domain | `shared/`, `organization/`, `knowledge/`, `rag/`, `issues/` | Entities, value objects, aggregates, domain services, repository interfaces | the standard library and other domain modules only |
 | Ports | `models/` | The shapes of the local models (embedding, LLM, LVM) | the standard library |
 | Application | `ingestion/`, `workflows/` (later also `answering/`, `transfer/` ...) | Use cases: coordinate the domain, read files, return results | the domain and the ports |
 | Infrastructure | `infrastructure/` | Adapters: in-memory and SQLite repositories, the registry CSV, CSV export, Ollama | everything |
@@ -77,7 +77,7 @@ A hard rule belongs to the object that can see everything the rule talks about. 
 | H04 | An update adds a version, never deletes one | `KnowledgeItem`, and the repositories | No remove method; repositories refuse a missing version; SQLite triggers refuse UPDATE and DELETE on versions |
 | H05 | A package below the threshold is never sent up | `TransferPackage` with a `JudgeThreshold` | Phase 11 |
 | H06 | Runs with the network off | Infrastructure (only `127.0.0.1`) | The Ollama client talks to 127.0.0.1; the test fixture blocks all other connections |
-| H07 | Issue status and progress follow fixed rules | `Issue` | Phase 7 |
+| H07 | Issue status and progress follow fixed rules | `Issue` | `Issue.with_status` allows only the moves of `issues/status.py`; `compute_progress` in `issues/progress.py` (weights from config, A31); tests in `tests/test_core_issue_progress.py` |
 | H08 | The ranking of issues is the same on every run | Issue prioritization service | Phase 12 |
 | H09 | Every answer cites a source or refuses | RAG Core answer formatter | Citation model now (`rag_core/rag/citation.py`); the formatter in Phase 8 |
 | H10 | A terminal node has one summary document and no children | `Hierarchy` (no children) and the ingestion use case (one document) | `Hierarchy.add_node`, `move_node` and `set_terminal` refuse a child under a terminal node; `IngestionService` refuses a second item in a terminal node; the make-terminal workflow refuses a node that has two items |
@@ -93,7 +93,7 @@ H10 has two halves with two owners. "No children" is a tree rule, so `Hierarchy`
 | Detect duplicates and overlaps | 5, built | an item or all items | duplicate and overlap records (`find-duplicates`) |
 | Define, move, make terminal, or change a node; define a layer or set its rule | 6, built | node and parent, or layer and rule | a `WorkflowResult`: done, or failed with the reason (nothing is saved on failure) |
 | Answer a question in a node | 8 | question, node | answer with citations, or "insufficient knowledge" |
-| Create an issue, split it into sub-issues | 7 | issue data | issue and sub-issues |
+| Create an issue, change its status, compare a draft, suggest and accept sub-issues | 7, built | issue data, a draft, or a parent issue and a language model | an `IssueResult`: done, or failed with the reason (nothing is saved on failure); `IssueService` in `workflows/issues.py` |
 | Run a node cycle and build a transfer package | 11 | node | a judged package, sent or held |
 | Draft an RFP, evaluate an RFP response | 13 | issue, RFP response | RFP, feedback report |
 
@@ -107,6 +107,7 @@ The proposal asks for a local database, a vector index, file storage and CSV out
 | --- | --- | --- |
 | `KnowledgeRepository` (`knowledge/repository.py`) | `InMemoryKnowledgeRepository`, `SqliteKnowledgeRepository` | none needed |
 | `HierarchyRepository` (`organization/repository.py`) | `CsvHierarchyRepository` (the registry files), `SqliteHierarchyRepository` (Phase 6), `InMemoryHierarchyRepository` | none needed |
+| `IssueRepository` (`issues/repository.py`) | `InMemoryIssueRepository`, `SqliteIssueRepository` (Phase 7); the seed import in `infrastructure/issues_csv.py` | none needed |
 | CSV output | `infrastructure/csv_export.py` (catalog and chunks) | transfer packages (Phase 11) |
 | Vector index | none yet (Phase 2 used an in-memory list in `baseline_runner/retrieval.py`) | a `VectorIndex` interface in Phase 8 |
 
@@ -126,7 +127,8 @@ rag_core/
 ├── rag/citation.py               the citation model
 ├── models/ports.py               EmbeddingModel, LanguageModel, VisionModel
 ├── ingestion/                    formats, extractors, samples, the ingestion use case, case-study requests
-├── workflows/                    the node and layer workflows (Phase 6)
+├── issues/                       Issue, IssueStatus, progress, node rules, comparison, suggestions (Phase 7)
+├── workflows/                    the node and layer workflows (Phase 6), the issue workflows (Phase 7)
 ├── infrastructure/               memory, SQLite (knowledge and hierarchy), registry CSV, CSV export, Ollama vision
 ├── fakes.py                      test doubles for the core
 └── __main__.py                   python -m rag_core ...
@@ -134,7 +136,7 @@ rag_core/
 
 `baseline_runner/` stays as it is: it is the Phase 2 experiment harness, and its results are the baseline. Phase 8 moves retrieval and answering into `rag_core` behind the same metrics, and the Phase 2 runner then becomes a thin evaluation script.
 
-## 10. Decisions made in Phases 3, 5 and 6
+## 10. Decisions made in Phases 3 to 7
 
 | # | Decision | Why | To confirm |
 | --- | --- | --- | --- |
@@ -161,3 +163,16 @@ rag_core/
 | A21 | The held-out set (`case_study/heldout_questions.csv`, ids HQ01 to HQ10) is read by no tuning step and is run once, at the end of Phase 14 | An honest final test (book Ch. 3 and 4: do not tune on the test set) | yes |
 | A22 | Duplicate pair labels (`tests/fixtures/duplicates/pairs.csv`) are human judgements of intent, not detector scores; "exact" means the same text after whitespace is normalised | M10 and M11 need labels that do not come from the detector being measured | yes |
 | A23 | The node directory (`rag_core/organization/directory.py`) raises `UnknownNodeError` for an unknown node instead of answering "not terminal" | A typo in a node id must fail loudly, not pass as a non-terminal node | yes |
+| A24 | The Markdown files stay the source of truth; a real file is named in extra manifest columns (`real_file`, `real_format`) and never replaces `file` | The answer key and every earlier run read the Markdown; the real files test the readers | yes |
+| A25 | Five real files: DOCX for D04 and D13, text PDF for D02 and D17, an image-only PDF for D19; no .doc; D10 and D12 stay Markdown | One of each format the proposal names, while the planted version and duplicate problems stay as they are | yes |
+| A26 | D19 is a clean render of the Markdown, with no scan noise, so it is easier to read than a real scan | No scanner is available; a result on D19 is an upper bound for real scans | yes |
+| A27 | Without a vision model, D19 falls back to its Markdown with a note; a PDF with a few empty pages is ingested with a warning, not failed | Ingestion must work on a laptop with no LVM running, and one blank page should not lose a document | yes |
+| A28 | A PDF page has no text layer when it has fewer than 5 words | An untuned starting value: a page number or a header alone is not text | yes |
+| A29 | Pages are rendered at 144 dpi in grey before the vision model reads them | An untuned starting value: readable text with small images on a 4 GB GPU | yes |
+| A30 | Issues use the ten statuses of proposal 14.1 with a fixed table of allowed moves (`rag_core/issues/status.py`): work goes forward, a person may step back to analyzing, archived is the end. The old values map by meaning (`in progress` becomes `in_progress`) | The proposal names the statuses but not the moves; H07 needs fixed rules | yes |
+| A31 | Progress uses the seven factors of proposal 14.1 (the build plan named five). Each factor is done or not, except sub-issues solved, which is a share. The weights are in `config/issue_progress_weights.csv`, add up to 100 and are untuned. Only a solved issue shows 100; any other shows at most 99. With no sub-issues, both sub-issue factors count zero | Fixed rules, same input same output (H07); the weights need the supervisor and data | yes |
+| A32 | Priority is one of not set, low, medium, high; category is free text; the issue type is one of the five kinds in the glossary; the field of activity defaults to the node's | The proposal asks for a priority (12.1) but gives no scale | yes |
+| A33 | A sub-issue and a blocked-by link stay inside one node, and neither parent nor blocked-by links may form a cycle. Siblings have different positions | An issue is modelled inside one node (glossary); a cycle has no order to work in | yes |
+| A34 | A draft is compared with the issues of its own node only, by shared words (Jaccard) after stopwords are removed. Results are a ranked list with no threshold; a threshold waits for labelled issue pairs. A `similarity` slot takes embedding similarity in Phase 8 | Proposal 12: compare with the existing issues of the same node; do not choose a number before there is data to measure it | yes |
+| A35 | Sub-issue suggestions come from the LLM with prompt P12 and are never saved on their own; a person accepts, edits or rejects, and the accepted ones are saved together in one transaction. The prompt never shows the existing sub-issues | A model reply must not create issues; M15 must not be leaked the answer | yes |
+| A36 | Issues live in the `issues` table of `data/project.sqlite`. `case_study/issues.csv` is imported once, keeping ids, nodes, parents, titles and descriptions; the created date is the import time and the sibling position is the order in the file | One project database (build plan A0); the CSV is a reviewed seed, like the registry (A19) | yes |

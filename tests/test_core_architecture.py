@@ -1,8 +1,9 @@
 """The dependency rule of architecture/architecture.md, checked on the code itself.
 
-The domain (shared, organization, knowledge, rag) and the ports (models) may import only the standard library and
-each other. They never import the application layer, the adapters, the Phase 2 runner, or anything that reaches
-files on disk, databases, processes or the network.
+The domain (shared, organization, knowledge, rag, issues) and the ports (models) may import only the standard library
+and each other. They never import the application layer, the adapters, the Phase 2 runner, or anything that reaches
+files on disk, databases, processes or the network. Every package of rag_core must be given a layer here, so a new
+package cannot slip past the rule (build plan A3).
 """
 import ast
 from pathlib import Path
@@ -10,8 +11,8 @@ from pathlib import Path
 import pytest
 
 CORE = Path("rag_core")
-DOMAIN = ("shared", "organization", "knowledge", "rag", "models")
-FORBIDDEN_PACKAGES = ("rag_core.ingestion", "rag_core.infrastructure", "baseline_runner")
+DOMAIN = ("shared", "organization", "knowledge", "rag", "models", "issues")
+FORBIDDEN_PACKAGES = ("rag_core.ingestion", "rag_core.infrastructure", "rag_core.workflows", "baseline_runner")
 FORBIDDEN_MODULES = {"sqlite3", "socket", "urllib", "http", "requests", "subprocess", "zipfile", "pathlib", "os", "shutil"}
 
 
@@ -45,3 +46,17 @@ APPLICATION = ("ingestion", "workflows")
 def test_the_application_layer_does_not_import_adapters(path):
     for name in imports_of(path):
         assert not name.startswith(("rag_core.infrastructure", "baseline_runner")), f"{path} imports {name}"
+
+
+INFRASTRUCTURE = ("infrastructure",)
+
+
+def test_every_package_has_a_layer():
+    packages = {p.parent.name for p in CORE.glob("*/__init__.py")}
+    unknown = packages - set(DOMAIN) - set(APPLICATION) - set(INFRASTRUCTURE)
+    assert not unknown, f"give these packages a layer in this test: {sorted(unknown)}"
+
+
+def test_the_issue_domain_is_checked():
+    checked = {p.name for p in (CORE / "issues").glob("*.py")}
+    assert {"model.py", "status.py", "progress.py", "rules.py", "comparison.py", "suggestions.py", "repository.py"} <= checked

@@ -1,0 +1,8 @@
+factor,weight,meaning,decision
+sub_issues_defined,15,The issue has at least one sub-issue,untuned starting value (A31)
+supporting_knowledge,15,At least one knowledge item is linked to the issue,untuned starting value (A31)
+executor_mapped,10,At least one executor is mapped to the issue,untuned starting value (A31)
+solution_proposed,20,An answer or a solution is proposed,untuned starting value (A31)
+research_completed,10,The research the issue needs is complete,untuned starting value (A31)
+sub_issues_solved,20,The share of its sub-issues that are solved,untuned starting value (A31)
+review_approved,10,The approval or review is done,untuned starting value (A31)

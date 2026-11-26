@@ -14,6 +14,10 @@
     python -m rag_core move-node --id N6 --parent N5     give a node (and everything under it) a new parent
     python -m rag_core set-terminal --id N6 --knowledge-db FILE [--off]     make a node a black box, or open it again
 
+    python -m rag_core list-issues --node N6 | show-issue --id I01 | create-issue ... | set-issue-status ...
+    python -m rag_core compare-issue --node N6 --title "..." | suggest-sub-issues --issue I01 | accept-sub-issues ...
+                                                         the issue commands (Phase 7), details in rag_core/cli_issues.py
+
 ingest-case-study and ingest-file take --detect-duplicates: near duplicates and overlaps become notes in the report
 and a duplicates.csv is written next to the database.
 """
@@ -333,6 +337,9 @@ def main(argv=None):
     p = sub.add_parser("make-samples", help="DOCX and PDF copies of five case-study files")
     p.add_argument("--out")
     p.set_defaults(run=cmd_make_samples)
+
+    from .cli_issues import add_issue_commands
+    add_issue_commands(sub)
 
     args = parser.parse_args(argv)
     return args.run(args) or 0

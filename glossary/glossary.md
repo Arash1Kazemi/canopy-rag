@@ -5,7 +5,7 @@ Source: the project proposal (sections 5.1 to 5.3 and the sections on knowledge,
 
 ## What the glossary is
 
-The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 64 terms come from the proposal's own lists of entities and value objects. The other forty are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule). Three were added on 2026-11-25, in Part A of the build plan: Node directory, Labelled pair and Held-out question.
+The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 81 terms come from the proposal's own lists of entities and value objects. The other fifty-seven are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule). Three were added on 2026-11-25, in Part A of the build plan: Node directory, Labelled pair and Held-out question. Four more were added that day for the real files of Phase 4: Real file, Image-only PDF, Text layer and Mixed PDF. Thirteen were added in Phase 7, when issues were built: IssueStatus, Issue type, Priority, Issue category, Issue dependency, RelativePosition, Progress factor, ProgressWeights, Issue comparison, IssueDraft, IssueMatch, Stopword and SubIssueSuggestion.
 
 ## How to read an entry
 
@@ -66,6 +66,10 @@ Four rules keep the language clean:
 | ChunkStage | Where a chunk is in its life cycle: created, embedded, checked for duplicates, or indexed. | Value object | Knowledge Management | chunk status, chunk state |
 | Change summary | A short machine-written note of what changed between a version and the one registered before it. | Concept (added by us) | Knowledge Management | diff, changelog |
 | Labelled pair | Two texts with a human label (exact, near, overlap or different), used to measure duplicate detection. | Concept (added by us) | Knowledge Management | test pair, sample pair |
+| Real file | A DOCX or PDF made from a case-study Markdown source, named in the manifest's `real_file` column. | Concept (added by us) | Knowledge Management | converted copy, sample file |
+| Image-only PDF | A PDF whose pages are only pictures, with no text layer, like a scan. | Concept (added by us) | Knowledge Management | scanned PDF, image PDF |
+| Text layer | The text a PDF stores, which a reader can pull out without a vision model. | Concept (added by us) | Knowledge Management | OCR text, hidden text |
+| Mixed PDF | A PDF with both text pages and scanned pages, read page by page. | Concept (added by us) | Knowledge Management | hybrid PDF, partly scanned PDF |
 
 ### RAG
 
@@ -85,6 +89,19 @@ Four rules keep the language clean:
 | Executor | A person, team, unit, or organizational capability that can help solve an issue. | Entity | Executor Management | assignee, owner, worker |
 | Issue-Knowledge-Executor model | The graph of typed relationships between issues, knowledge, and executors, such as "issue depends on knowledge". Short form: IKE model. | Concept (proposal text) | Issue-Knowledge-Executor | knowledge graph |
 | Research gap | A hole in a node's knowledge: nothing relevant, outdated, conflicting, not answerable with confidence, or a judge score below the threshold. | Concept (proposal text) | Issue Management | missing info, unknown |
+| IssueStatus | Where an issue stands, one of the ten values of proposal 14.1: new, analyzing, knowledge identified, executor identified, solution proposed, in progress, awaiting decision, solved, unsolved, archived. Only the moves in a fixed table are allowed. | Value object | Issue Management | state, stage, phase |
+| Issue type | What kind of issue it is: a problem, a question, a need, a research gap or an operational concern. | Concept (proposal text) | Issue Management | kind, class |
+| Priority | How soon an issue should be worked on: not set, low, medium or high (a working scale until the supervisor decides). | Concept (proposal text) | Issue Management | urgency, severity, importance |
+| Issue category | A label that groups related issues inside one node, such as data or capacity. It is not the node's field of activity. | Concept (proposal text) | Issue Management | tag, type, field |
+| Issue dependency | A blocked-by link: one issue waits for another issue of the same node. The links never form a cycle. | Concept (proposal text) | Issue Management | prerequisite, predecessor |
+| RelativePosition | Where an issue stands among the issues of its node: its parent, its position among its siblings, its sub-issues, what blocks it, what it blocks, and the issues of the same category. | Value object | Issue Management | rank, order |
+| Progress factor | One of the seven things proposal 14.1 counts as progress, such as sub-issues defined or a solution proposed. Each is done or not done; sub-issues solved is a share. | Concept (proposal text) | Issue Management | criterion, KPI |
+| ProgressWeights | One whole-number weight per progress factor, adding up to 100, read from config/issue_progress_weights.csv. The values are untuned. | Value object | Issue Management | scores, coefficients |
+| Issue comparison | Ranking the existing issues of the same node by how much they resemble a draft: shared words after stopwords are removed, and embedding similarity from Phase 8. There is no threshold yet. | Concept (proposal text) | Issue Management | deduplication, search |
+| IssueDraft | A new issue that is not saved yet, in the node where it would live. It is compared with the existing issues. | Value object | Issue Management | proposal, candidate |
+| IssueMatch | One existing issue of the same node that resembles a draft, with its score and the words they share. | Value object | Issue Management | duplicate, hit |
+| Stopword | A small common word, such as the or on, that is removed before two texts are compared. | Concept (added by us) | Issue Management | filler word, noise word |
+| SubIssueSuggestion | A sub-issue that the language model proposes. It becomes a SubIssue only when a person accepts it, as it is or edited. | Value object | Issue Management | generated issue, AI issue |
 
 ### Transfer
 
