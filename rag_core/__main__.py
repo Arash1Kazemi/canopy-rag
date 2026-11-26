@@ -18,6 +18,10 @@
     python -m rag_core compare-issue --node N6 --title "..." | suggest-sub-issues --issue I01 | accept-sub-issues ...
                                                          the issue commands (Phase 7), details in rag_core/cli_issues.py
 
+    python -m rag_core list-executors [--node N6] | match-executors --issue I01 [--scope node|lineage] [--limit 5]
+    python -m rag_core map-executor --issue I01 --executor P01 | ike-seed | ike-summary --node N6 [--csv-out F] [--edges-out F]
+                                                         executors and IKE (Phase 9, no model), details in rag_core/cli_executors.py
+
     python -m rag_core index [--db FILE] [--fake-models]            embed and index the case study (Phase 8)
     python -m rag_core ask --node N6 "question" [--prompt P01|P13] [--k 3] [--db FILE]     answer with checked citations
     python -m rag_core evaluate [--run-id ID] [--prompt P01|P13] [--fake-models]     the 26 questions through the core,
@@ -348,6 +352,8 @@ def main(argv=None):
     add_issue_commands(sub)
     from .cli_rag import add_rag_commands
     add_rag_commands(sub)
+    from .cli_executors import add_executor_commands
+    add_executor_commands(sub)
 
     args = parser.parse_args(argv)
     return args.run(args) or 0

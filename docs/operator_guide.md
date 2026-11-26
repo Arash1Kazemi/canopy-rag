@@ -346,6 +346,31 @@ What to compare (open `comparison.md`, then the rows file):
 
 Then tell me the folder names. The evaluation report for `docs/` (the table, the questions that changed and why) is written from the saved files, not from memory.
 
+## Executors and IKE
+
+Phase 9. These commands need no model and no Ollama. They use `data/project.sqlite` (or `--db FILE`, or `RAG_DATA_DB`), like the issue commands. The people of `case_study/people.csv` become executors the first time you run any of them; running again adds nobody. Exit code 2 means an unknown node, issue or executor, or a database without a hierarchy (run `migrate-db` first).
+
+```powershell
+& $py -m rag_core list-executors --node N6
+& $py -m rag_core match-executors --issue I01 --scope node --limit 5
+& $py -m rag_core match-executors --issue I01 --scope lineage
+& $py -m rag_core map-executor --issue I01 --executor P01
+& $py -m rag_core ike-seed
+& $py -m rag_core ike-summary --node N6 --csv-out results/ike/n6_counts.csv --edges-out results/ike/n6_edges.csv
+```
+
+- `match-executors` prints each candidate with the score and its parts (tags, documents, same node, availability) and the words that matched. The weights are untuned. `--scope lineage` adds the ancestors and descendants of the issue's node.
+- `map-executor` saves the executor on the issue, which raises its progress (the factor "an executor is mapped"). It does not change the issue's status.
+- `ike-seed` loads the 38 seed relations once. `ike-summary` prints the counts by relation type, every edge, and who can follow up each issue; the two CSV files are optional.
+
+### Fill the M15 and M16 sheets
+
+Both are done by you, by hand. Do not write a target (they stay `to agree with supervisor`). The full steps are in `metrics/rubrics/`.
+
+- **M15** (`m15_sub_issue_recall.md`, `m15_score_sheet.csv`). First run part E to get the suggestions file. For each suggestion write `I02`, `I03`, `I04` or `none` in `matches_known_sub_issue`. Then in the score sheet fill one row per known sub-issue: `found` (yes/no), `matching_suggestions` (numbers separated by `;`), `run_file`, `model`, `rater`, `rated_on`. M15 = rows with `found` yes, divided by 3.
+- **M16** (`m16_solution_usefulness.md`, `m16_score_sheet.csv`). For each of the seven issues, read the issue, the documents of its own node, and the suggested solution. Fill the seven checklist columns (yes, no or not needed), then `rating` from 1 to 5 (a claim the documents do not support caps it at 2), plus `solution_file`, `model`, `prompt`, `rater`, `rated_on`. M16 = the average of the seven ratings. Rate in the order of the sheet and do not change a rating after seeing the average.
+- Save the filled sheets under `results/` with the run date, not over the empty templates.
+
 ## Real files (DOCX and PDF) and `--ocr`
 
 The case study keeps Markdown as the source. `scripts/make_real_files.py` makes the real files the manifest names (D04 and D13 as DOCX, D02 and D17 as text PDF, D19 as an image-only PDF):
