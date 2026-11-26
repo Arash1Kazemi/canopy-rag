@@ -117,3 +117,37 @@ class InMemoryVectorIndex:
 
     def search(self, query_vector, k, index_filter):
         return rank(self.records(index_filter.node_id), query_vector, k, index_filter, self.similarity)
+
+
+class InMemoryExecutorRepository:
+    """Executors in a dict (Phase 9). An Executor is frozen, so storing the object itself is safe. `add_all` checks every
+    id before it stores anything, so a group is stored whole or not at all, like the SQLite transaction."""
+
+    def __init__(self, executors=()):
+        self._executors = {}
+        self.add_all(executors)
+
+    def get(self, executor_id):
+        return self._executors.get(str(executor_id))
+
+    def all_executors(self):
+        return list(self._executors.values())
+
+    def is_empty(self):
+        return not self._executors
+
+    def add_all(self, executors):
+        executors = list(executors)
+        ids = [str(e.executor_id) for e in executors]
+        if len(set(ids)) != len(ids):
+            raise ValueError("the same executor id appears twice in one group")
+        stored = [i for i in ids if i in self._executors]
+        if stored:
+            raise ValueError(f"executor id already stored: {', '.join(stored)}")
+        for executor in executors:
+            self._executors[str(executor.executor_id)] = executor
+
+    def update(self, executor):
+        if str(executor.executor_id) not in self._executors:
+            raise ValueError(f"executor {executor.executor_id} is not stored, so it cannot be updated")
+        self._executors[str(executor.executor_id)] = executor

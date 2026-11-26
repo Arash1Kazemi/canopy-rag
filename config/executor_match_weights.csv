@@ -1,0 +1,5 @@
+factor,weight,meaning,decision
+tags,60,How much of the executor's expertise tags the issue's words cover,untuned starting value
+documents,25,The executor wrote a document whose title shares a word with the issue,untuned starting value
+same_node,15,The executor lives in the issue's node,untuned starting value
+availability,0,Available 1 / limited 0.5 / unavailable or not given 0; not used until the supervisor decides,untuned starting value
