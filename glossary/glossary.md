@@ -5,7 +5,7 @@ Source: the project proposal (sections 5.1 to 5.3 and the sections on knowledge,
 
 ## What the glossary is
 
-The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 81 terms come from the proposal's own lists of entities and value objects. The other fifty-seven are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule). Three were added on 2026-11-25, in Part A of the build plan: Node directory, Labelled pair and Held-out question. Four more were added that day for the real files of Phase 4: Real file, Image-only PDF, Text layer and Mixed PDF. Thirteen were added in Phase 7, when issues were built: IssueStatus, Issue type, Priority, Issue category, Issue dependency, RelativePosition, Progress factor, ProgressWeights, Issue comparison, IssueDraft, IssueMatch, Stopword and SubIssueSuggestion.
+The glossary gives every important word in the project one meaning and one code name. In Domain-Driven Design this is the ubiquitous language: the same word is used in meetings with your supervisor, in documents, and in class names. It is the second open Phase 1 item, after scope and objectives, and it produces the initial glossary the project proposal asks for. Twenty-four of the 93 terms come from the proposal's own lists of entities and value objects. The other sixty-nine are concepts the proposal describes in words, or that we added. Eight were added in Phase 3, when the domain model was designed, and Phase 3 also fixed the code names that were left open. Six were added in Phase 5, when versions, the chunk life cycle and duplicate detection were built, and two in Phase 6, when the layer registry was built (Transfer rule also became the value object TransferRule). Three were added on 2026-11-25, in Part A of the build plan: Node directory, Labelled pair and Held-out question. Four more were added that day for the real files of Phase 4: Real file, Image-only PDF, Text layer and Mixed PDF. Thirteen were added in Phase 7, when issues were built: IssueStatus, Issue type, Priority, Issue category, Issue dependency, RelativePosition, Progress factor, ProgressWeights, Issue comparison, IssueDraft, IssueMatch, Stopword and SubIssueSuggestion. Twelve were added in Phase 8, when retrieval and answering were built: VectorIndex, VectorRecord, IndexSignature, RetrievalHit, Metadata filter, Index rebuild, ContextHit, Context assembly, Context budget, Refusal reason, Uncited policy and AnswerPrompt.
 
 ## How to read an entry
 
@@ -78,6 +78,17 @@ Four rules keep the language clean:
 | RetrievalQuery | The normalized form of a question from a user or the system, used to search. | Value object | RAG Core | prompt (a prompt is the whole text sent to the model) |
 | SimilarityScore | How close a chunk is to a query in vector or hybrid retrieval. | Value object | RAG Core | relevance, confidence |
 | Citation | A link from a claim in an answer to its source: the file, and when known the chunk and page. | Value object | RAG Core | reference, footnote |
+| VectorIndex | The stored chunk vectors with exact cosine search. It filters by node, active version and metadata before it ranks anything. | Entity | RAG Core | vector store, vector database |
+| VectorRecord | One chunk's vector with its chunk, item, version, node, embedding model and chunking policy. | Value object | RAG Core | embedding row, vector entry |
+| IndexSignature | The embedding model tag plus the chunking policy of an index. When either changes, the index is rebuilt. | Value object | RAG Core | index version, index key |
+| RetrievalHit | One ranked chunk returned by retrieval, with its score and its source location. | Value object | RAG Core | search result, match |
+| Metadata filter | Conditions on version metadata that remove chunks before ranking, never after. | Concept (proposal text) | RAG Core | post-filter, search filter |
+| Index rebuild | Dropping all vectors and embedding again because the index signature changed. | Concept (added by us) | RAG Core | reindex, refresh |
+| ContextHit | A ranked chunk in the form the answer step needs: id, text, file stem, score and pages. | Value object | RAG Core | snippet, passage |
+| Context assembly | Filling the answer prompt with ranked chunks in rank order within a token budget, never cutting a chunk. | Concept (added by us) | RAG Core | stuffing, packing |
+| Context budget | The tokens left for chunks after the model window, the room for the reply and the fixed prompt text. | Concept (added by us) | RAG Core | context size, window |
+| Refusal reason | Why an answer is "insufficient knowledge": no evidence, context too small, the model refused, or no valid citation. | Concept (added by us) | RAG Core | error code, failure |
+| Uncited policy | What happens to an answer with no valid citation: refuse it (the default) or keep it and mark it uncited. | Concept (added by us) | RAG Core | citation mode |
 
 ### Issues and executors
 
@@ -137,6 +148,7 @@ Four rules keep the language clean:
 | LLM | The local large language model that writes answers and summaries from retrieved chunks. The judge also runs on it. | Concept (proposal text) | Model and Prompt Management | chat model, generator, bot |
 | LVM | The local vision-language model that reads page images, such as a scanned document, and returns text. Reading text from an image (OCR) is one of its tasks. | Concept (proposal text) | Model and Prompt Management | OCR engine, image model |
 | Quantization | Storing a model's numbers with fewer bits so the file is smaller and runs faster, at a small cost in quality. Shown as Q4 or Q8 in model names. | Concept (added by us) | Model and Prompt Management | compression, shrinking |
+| AnswerPrompt | A versioned answer prompt template with its registry id, such as P01 or P13. | Value object | Model and Prompt Management | system prompt, instructions |
 
 ### RFP
 

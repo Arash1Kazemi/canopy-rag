@@ -56,3 +56,62 @@ def parse_citations(answer):
             if STEM.fullmatch(stem) and stem not in found:
                 found.append(stem)
     return found
+
+
+KNOWN_EXTENSIONS = (".md", ".txt", ".pdf", ".docx", ".doc")
+
+
+@dataclass(frozen=True)
+class CitationCheck:
+    """The result of checking the citations of one answer against the stems that were given to the model (H09).
+
+    valid_stems: cited stems that were given, in order of first appearance, written as given (not as the model wrote them).
+    invalid_stems: cited stems that were not given, as the model wrote them.
+    cleaned_text: the answer with every invalid stem removed; a bracket left empty is removed with the space before it.
+    """
+    valid_stems: tuple
+    invalid_stems: tuple
+    cleaned_text: str
+
+
+def _canonical(stem, allowed):
+    """The allowed stem this cited stem means, or None. A file extension after the stem ([D10_x.md]) is tolerated,
+    as in the Phase 2 grading; case and spelling must match exactly."""
+    if stem in allowed:
+        return stem
+    for ext in KNOWN_EXTENSIONS:
+        if stem.lower().endswith(ext) and stem[: -len(ext)] in allowed:
+            return stem[: -len(ext)]
+    return None
+
+
+def check_citations(answer, allowed_stems):
+    """Split the citations of an answer into valid (given to the model) and invalid (anything else), and remove the
+    invalid ones from the text. Text in brackets that is not a stem, such as [the report above], is left alone."""
+    allowed = set(allowed_stems)
+    valid, invalid = [], []
+    removed = []
+
+    def rewrite(match):
+        parts = [p.strip() for p in match.group(1).split(",")]
+        kept = []
+        for part in parts:
+            if not STEM.fullmatch(part):
+                kept.append(part)          # not a citation: leave it as it was written
+                continue
+            canon = _canonical(part, allowed)
+            if canon is None:
+                removed.append(part)
+                if part not in invalid:
+                    invalid.append(part)
+                continue
+            if canon not in valid:
+                valid.append(canon)
+            kept.append(canon)
+        return f"[{', '.join(kept)}]" if kept else ""
+
+    cleaned = BRACKET.sub(rewrite, answer)
+    if removed:                                                       # tidy the gap a removed bracket leaves
+        cleaned = re.sub(r"[ \t]+([.,;:!?])", r"\1", cleaned)
+        cleaned = re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+    return CitationCheck(tuple(valid), tuple(invalid), cleaned)

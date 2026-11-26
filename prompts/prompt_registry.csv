@@ -11,3 +11,4 @@ P09,embed_query,1,embed_query_qwen3_v1.txt,text,qwen3-embedding-0.6b,"Instruct t
 P10,embed_document,1,embed_document_plain_v1.txt,text,qwen3-embedding-0.6b;bge-m3,"No instruction on documents (the model cards of both models)."
 P11,embed_query,1,embed_query_plain_v1.txt,text,bge-m3,"bge-m3 needs no instruction on queries (model card)."
 P12,suggest_sub_issues,1,suggest_sub_issues_v1.txt,description;field_of_activity;title,task:llm,"Phase 7: suggest 3 to 5 sub-issues, one per line as title | description. Never shows the existing sub-issues, so M15 is fair."
+P13,answer,2,answer_with_citations_v2.txt,context;question,task:llm,"Phase 8: v1 plus a rule to report a conflict between two documents (Q06) and to cite only the files shown. Not run yet: compare with P01 on the 26 questions before using it for results."

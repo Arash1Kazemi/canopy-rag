@@ -38,6 +38,17 @@ Mixed PDF,Knowledge,Concept,added by us,Knowledge Management,"A PDF with both te
 RetrievalQuery,RAG,Value object,Proposal,RAG Core,"The normalized form of a question from a user or the system, used to search.",prompt (a prompt is the whole text sent to the model),RetrievalQuery
 SimilarityScore,RAG,Value object,Proposal,RAG Core,How close a chunk is to a query in vector or hybrid retrieval.,"relevance, confidence",SimilarityScore
 Citation,RAG,Value object,proposal text,RAG Core,"A link from a claim in an answer to its source: the file, and when known the chunk and page.","reference, footnote",Citation
+VectorIndex,RAG,Entity,proposal text,RAG Core,"The stored chunk vectors with exact cosine search. It filters by node, active version and metadata before it ranks anything.","vector store, vector database",VectorIndex
+VectorRecord,RAG,Value object,added by us,RAG Core,"One chunk's vector with its chunk, item, version, node, embedding model and chunking policy.","embedding row, vector entry",VectorRecord
+IndexSignature,RAG,Value object,added by us,RAG Core,"The embedding model tag plus the chunking policy of an index. When either changes, the index is rebuilt.","index version, index key",IndexSignature
+RetrievalHit,RAG,Value object,added by us,RAG Core,"One ranked chunk returned by retrieval, with its score and its source location.","search result, match",RetrievalHit
+Metadata filter,RAG,Concept,proposal text,RAG Core,"Conditions on version metadata that remove chunks before ranking, never after.","post-filter, search filter",metadata_filter
+Index rebuild,RAG,Concept,added by us,RAG Core,Dropping all vectors and embedding again because the index signature changed.,"reindex, refresh",index_rebuild
+ContextHit,RAG,Value object,added by us,RAG Core,"A ranked chunk in the form the answer step needs: id, text, file stem, score and pages.","snippet, passage",ContextHit
+Context assembly,RAG,Concept,added by us,RAG Core,"Filling the answer prompt with ranked chunks in rank order within a token budget, never cutting a chunk.","stuffing, packing",context_assembly
+Context budget,RAG,Concept,added by us,RAG Core,"The tokens left for chunks after the model window, the room for the reply and the fixed prompt text.","context size, window",context_budget
+Refusal reason,RAG,Concept,added by us,RAG Core,"Why an answer is ""insufficient knowledge"": no evidence, context too small, the model refused, or no valid citation.","error code, failure",refusal_reason
+Uncited policy,RAG,Concept,added by us,RAG Core,What happens to an answer with no valid citation: refuse it (the default) or keep it and mark it uncited.,citation mode,uncited_policy
 Issue,Issues and executors,Entity,Proposal,Issue Management,"A problem, question, need, research gap, or operational concern modeled inside one node.","ticket, task, bug",Issue
 SubIssue,Issues and executors,Entity,Proposal,Issue Management,"An issue derived from a parent issue, with its own status and relationships.","subtask, child task",SubIssue
 ProgressPercentage,Issues and executors,Value object,Proposal,Issue Management,"How far an issue has come, from 0 to 100, calculated by fixed rules.","completion, percent done",ProgressPercentage
@@ -77,6 +88,7 @@ Embedding model,Models and prompts,Concept,proposal text,Model and Prompt Manage
 LLM,Models and prompts,Concept,proposal text,Model and Prompt Management,The local large language model that writes answers and summaries from retrieved chunks. The judge also runs on it.,"chat model, generator, bot",llm
 LVM,Models and prompts,Concept,proposal text,Model and Prompt Management,"The local vision-language model that reads page images, such as a scanned document, and returns text. Reading text from an image (OCR) is one of its tasks.","OCR engine, image model",lvm
 Quantization,Models and prompts,Concept,added by us,Model and Prompt Management,"Storing a model's numbers with fewer bits so the file is smaller and runs faster, at a small cost in quality. Shown as Q4 or Q8 in model names.","compression, shrinking",quantization
+AnswerPrompt,Models and prompts,Value object,added by us,Model and Prompt Management,"A versioned answer prompt template with its registry id, such as P01 or P13.","system prompt, instructions",AnswerPrompt
 RFP,RFP,Entity,Proposal,RFP and Proposal Management,A request for proposals that the system writes to invite solutions to an unsolved issue.,"tender, call",RFP
 Proposal,RFP,Entity,Proposal,RFP and Proposal Management,"A submission that answers an RFP and is evaluated against it. In prose, call it an RFP response.","bid, offer; ""proposal"" alone for the project document",Proposal
 FeedbackReport,RFP,Entity,Proposal,RFP and Proposal Management,"A structured report on a proposal: strengths, weaknesses, missing requirements, and a recommendation.","review, comments",FeedbackReport
