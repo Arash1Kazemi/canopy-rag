@@ -92,3 +92,5 @@ AnswerPrompt,Models and prompts,Value object,added by us,Model and Prompt Manage
 RFP,RFP,Entity,Proposal,RFP and Proposal Management,A request for proposals that the system writes to invite solutions to an unsolved issue.,"tender, call",RFP
 Proposal,RFP,Entity,Proposal,RFP and Proposal Management,"A submission that answers an RFP and is evaluated against it. In prose, call it an RFP response.","bid, offer; ""proposal"" alone for the project document",Proposal
 FeedbackReport,RFP,Entity,Proposal,RFP and Proposal Management,"A structured report on a proposal: strengths, weaknesses, missing requirements, and a recommendation.","review, comments",FeedbackReport
+Evaluation run,Judging,Concept,added by us,Evaluation and Judging,"One pass of the 26 answer-key questions through a system, graded with the grading rules and summarized as metrics, saved in one results folder.","benchmark run, test run (a test run is a unit test)",evaluation_run
+Answer engine,RAG,Concept,added by us,RAG Core,"The code that retrieves and answers in an evaluation run: the Phase 2 runner's own code (baseline) or the rag_core use cases (core).","backend, mode, pipeline",answer_engine

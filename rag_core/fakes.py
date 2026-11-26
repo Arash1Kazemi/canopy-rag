@@ -96,3 +96,20 @@ class HashingEmbedder:
     def embed_query(self, text):
         self.queries.append(text)
         return self.vector(text)
+
+
+class EchoLanguageModel:
+    """A fake LLM for a model-free smoke run (`--fake-models`): it answers with the first entry of the context, cited
+    with its file stem, or refuses when there is none. It reads the prompt the way the Phase 2 FakeClient does (the
+    entries sit between "Documents:" and "Question:" as "[stem] text"). It is also a spy: `prompts` holds every prompt."""
+
+    def __init__(self):
+        self.prompts = []
+
+    def generate(self, prompt):
+        self.prompts.append(prompt)
+        block = prompt.split("Documents:", 1)[-1].split("Question:", 1)[0]
+        match = re.search(r"\[([\w.\-]+)\]\s*(.+)", block)
+        if not match:
+            return "Insufficient knowledge."
+        return f"{match.group(2).strip()[:200]} [{match.group(1)}]"

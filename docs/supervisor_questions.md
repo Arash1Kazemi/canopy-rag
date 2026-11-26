@@ -71,3 +71,7 @@ Source for all of these: [architecture/architecture.md](../architecture/architec
 - A45: Context is filled in rank order and stops at the first chunk that does not fit; no chunk is cut; `min_score` has no default. [architecture.md section 10](../architecture/architecture.md)
 - A46: Indexing, retrieval and answering live in `rag_core/rag/` as pure use cases that take their ports as arguments; prompt files are loaded in `rag_core/workflows/`. [architecture.md section 10](../architecture/architecture.md)
 - A47: Answer prompt P13 (v2) adds a conflict rule (report both documents) and "cite only files shown"; P01 stays the default until both are compared on the 26 questions. [architecture.md section 10](../architecture/architecture.md)
+- A48: the Phase 2 runner gets `e3 --engine core`; the full move of the grading code into the core is left for Phase 14. [architecture.md section 10](../architecture/architecture.md)
+- A49: `evaluate` reads the Markdown files and differs from the baseline in three known ways (active versions only, checked citations, an uncited answer is a refusal). [architecture.md section 10](../architecture/architecture.md)
+- A50: the comparison baseline is `results/e3-first` (regraded), M05 is not measured before Phase 10. [architecture.md section 10](../architecture/architecture.md)
+- A51: a setup problem exits with code 2 and a refusal exits with 0; `evaluate` never overwrites a run. [architecture.md section 10](../architecture/architecture.md)

@@ -18,6 +18,12 @@
     python -m rag_core compare-issue --node N6 --title "..." | suggest-sub-issues --issue I01 | accept-sub-issues ...
                                                          the issue commands (Phase 7), details in rag_core/cli_issues.py
 
+    python -m rag_core index [--db FILE] [--fake-models]            embed and index the case study (Phase 8)
+    python -m rag_core ask --node N6 "question" [--prompt P01|P13] [--k 3] [--db FILE]     answer with checked citations
+    python -m rag_core evaluate [--run-id ID] [--prompt P01|P13] [--fake-models]     the 26 questions through the core,
+                                                         graded like the baseline and compared with results/e3-first
+                                                         (details in rag_core/cli_rag.py; exit code 2 if Ollama is unreachable)
+
 ingest-case-study and ingest-file take --detect-duplicates: near duplicates and overlaps become notes in the report
 and a duplicates.csv is written next to the database.
 """
@@ -340,6 +346,8 @@ def main(argv=None):
 
     from .cli_issues import add_issue_commands
     add_issue_commands(sub)
+    from .cli_rag import add_rag_commands
+    add_rag_commands(sub)
 
     args = parser.parse_args(argv)
     return args.run(args) or 0

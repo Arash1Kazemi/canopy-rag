@@ -3,7 +3,7 @@
   list    show the shortlisted models and whether they are downloaded
   check   is the local server running, and which shortlisted models are ready
   pull    download shortlisted models of a tier (this is the only command that downloads)
-  e1 e2 e3 e4 e5 e6   the experiments of prompt_test_plan.md
+  e1 e2 e3 e4 e5 e6   the experiments of prompt_test_plan.md (e3 --engine core: retrieval and answers by rag_core)
   regrade --run-id <run>   grade the saved answers of an e2 or e3 run again (no model needed)
 
 Add --fake to run any experiment with no model and no network (a dry run of the pipeline).
@@ -51,6 +51,9 @@ def parse(argv):
     parser.add_argument("--chunks", default=BASELINE_CHUNKS, choices=(*CHUNK_CONFIGS, *CORE_CHUNKS),
                         help="chunk setting for e3 and e6 (words80 is the baseline; sections80 stops at headings)")
     parser.add_argument("--k", type=int, default=BASELINE_K, help="chunks per question for e3")
+    parser.add_argument("--engine", default="baseline", choices=ex.ENGINES,
+                        help="e3: who retrieves and answers. baseline (default) is the Phase 2 code; core is rag_core "
+                             "(node filter before ranking, checked citations). Needs --chunks words80 or sections80")
     parser.add_argument("--tier", type=int, default=1, help="pull: download tiers up to this number")
     parser.add_argument("--images", nargs="*", type=Path, help="e4: page images to read")
     return parser.parse_args(argv)
@@ -115,10 +118,15 @@ def main(argv=None):
     elif args.command in ("e3", "e6"):
         if not embedding:
             raise SystemExit("e3 and e6 need --embedding <model id>, chosen from the e1 results")
-        ex.write_meta(ctx, command=args.command, embedding=embedding, chunks=args.chunks, k=args.k)
+        if args.engine == "core" and args.command != "e3":
+            raise SystemExit("--engine core is for e3 only")
+        ex.write_meta(ctx, command=args.command, embedding=embedding, chunks=args.chunks, k=args.k, engine=args.engine)
         runner = ex.run_e3 if args.command == "e3" else ex.run_e6
-        kwargs = {"k": args.k} if args.command == "e3" else {}
-        runner(ctx, pick(args, registry, "llm"), embedding, chunk_name=args.chunks, **kwargs)
+        kwargs = {"k": args.k, "engine": args.engine} if args.command == "e3" else {}
+        try:
+            runner(ctx, pick(args, registry, "llm"), embedding, chunk_name=args.chunks, **kwargs)
+        except ValueError as error:
+            raise SystemExit(str(error))
     elif args.command == "e4":
         images = args.images or [p for p in (RESULTS / "inputs").glob("d19_*.png")]
         if not images:

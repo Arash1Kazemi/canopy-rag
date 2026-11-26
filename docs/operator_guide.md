@@ -289,6 +289,63 @@ Status: prepared, not run (2026-11-26). The code is ready (`rag_core/workflows/i
 
 Then read the CSV and match each suggestion by hand against I02, I03 and I04 (the sub-issues that already exist). Count the matches. That count is the M15 baseline, with the run date and the model tag as its source. Do not write a target. To keep a suggestion, use `accept-sub-issues` (it saves the chosen ones in one transaction).
 
+### F. Phase 8 evaluation
+
+Status: prepared, not run (2026-11-26). The code is ready and tested with fakes (`rag_core/cli_rag.py`, `rag_core/evaluation.py`, `tests/test_core_cli_rag.py`). It needs the server (Part 1) and two models you already have from Phase 2: `qwen3-embedding:0.6b` and `phi4-mini:3.8b`. Run it in Window 2 (set up as in Part 1). Nothing is downloaded. Book: chapter 6 (retrieval and RAG) and chapter 5 for the prompt.
+
+Every command exits with 0 when it worked (a refusal is a result, not an error). It exits with 2 and one printed line when it cannot run: the server is not running, a model is not pulled, there is no index yet, or the results folder already holds a run. Add `--fake-models` to any of them to test the pipeline with no model at all.
+
+1. Index the case study into its own database file. It ingests the Markdown files, embeds the 33 chunks of active versions and stores the vectors:
+
+```powershell
+& $py -m rag_core index --db results\phase8\knowledge.sqlite --embedding qwen3-embedding-0.6b
+```
+
+Expected: `indexed 33 chunks of active versions: 33 embedded now`. Run it again: it must say `0 embedded now` and `33 already indexed`.
+
+2. Ask the three planted problems, one at a time. Read the retrieved list first (scores, files, `in context` or `left out`), then the answer, then the citations:
+
+```powershell
+& $py -m rag_core ask --db results\phase8\knowledge.sqlite --node N6 "What is the allowed chlorine residual in drinking water?" --k 5
+& $py -m rag_core ask --db results\phase8\knowledge.sqlite --node N2 "What is the allowed chlorine residual in drinking water?"
+& $py -m rag_core ask --db results\phase8\knowledge.sqlite --node N4 "How many buses does the Transit Agency have now?"
+& $py -m rag_core ask --db results\phase8\knowledge.sqlite --node N6 "Which route is the busiest?"
+& $py -m rag_core ask --db results\phase8\knowledge.sqlite --node N6 "Which route is the busiest?" --prompt P13
+```
+
+What to look for: the first (Q22 at N6) must be `Refused: yes` and no file of N2 (`D07`, `D08`) may be in the list. The second is the same question at N2, so you can see the answer does exist there. The third (D10) must say 135 and cite `D10_bus_fleet_inventory_v2`, never `v1`. The fourth and fifth (Q06) should name both Route 12 (D11) and Route 7 (D16); the Phase 2 baseline failed this one, and P13 adds a rule for it. Add `--show-chunks` to see the text that was retrieved.
+
+3. Run the 26 questions with the same settings as the Phase 2 baseline (qwen3-embedding-0.6b, phi4-mini, `words80`, k=3, prompt P01):
+
+```powershell
+& $py -m rag_core evaluate --run-id phase8-core-p01 --embedding qwen3-embedding-0.6b --llm phi4-mini --prompt P01 --k 3
+```
+
+It writes `results\phase8-core-p01\` in the same format as `results\e3-first\` (`e3_rows.csv`, `e3_summary.csv`, `meta.json`, which also records `ollama ps`), plus `comparison.csv`, `comparison.md` and its own `knowledge.sqlite`. The comparison table is printed at the end. It will not write into a folder that already holds a run, so a new try needs a new `--run-id`.
+
+4. Optional, after step 3: the same run with prompt P13 (v2: a conflict rule and "cite only files shown"). Change only the prompt:
+
+```powershell
+& $py -m rag_core evaluate --run-id phase8-core-p13 --embedding qwen3-embedding-0.6b --llm phi4-mini --prompt P13 --k 3
+```
+
+5. Optional cross-check: the Phase 2 runner with the core as its engine. The default engine is unchanged, so `e3-first` stays reproducible:
+
+```powershell
+& $py -m baseline_runner e3 --embedding qwen3-embedding-0.6b --chunks words80 --k 3 --models phi4-mini --engine core --run-id e3-core
+```
+
+What to compare (open `comparison.md`, then the rows file):
+
+- `M01` to `M04` and `M09` against the baseline row. The baseline (regraded) is M01 0.913, M02 0.870, M03 1.000, M04 0.000, M09 1.000. Do not write a target.
+- Three differences are on purpose (decision A49): the core indexes only active versions (no `D10 v1`, no `D12` copy), it checks every citation against the chunks it gave the model, and an answer with no valid citation becomes a refusal (A44). So `M02` and `M04` can move even if the model's answers do not change. In `e3_rows.csv` look at the `refusal_reason` column: `no_valid_citation` is that rule at work, and `invalid_citations` lists what the model wrote and the core removed.
+- `Q03` (the duplicate): the baseline scored M12 0.000 on it. The core has only one D12 file, so the answer cannot cite the copy; if `M12` rises, say that this is the reason (the planted problem is handled before retrieval), not a better model.
+- `Q06`: does the answer name both routes, with P01 and with P13? Compare the two runs on this question first, then on all 26: a prompt is promoted only if nothing else gets worse (A47).
+- `M06` to `M08`: retrieval alone. The baseline is M06 1.0, M07 0.573, M08 1.0. If they drop, the core's chunks or filter differ from the baseline's.
+- `M22` to `M24`: speed. Compare with 0.21 s, 37.5 tokens per second and 0.70 s median. `M05` is `not measured`: the judge comes in Phase 10.
+
+Then tell me the folder names. The evaluation report for `docs/` (the table, the questions that changed and why) is written from the saved files, not from memory.
+
 ## Real files (DOCX and PDF) and `--ocr`
 
 The case study keeps Markdown as the source. `scripts/make_real_files.py` makes the real files the manifest names (D04 and D13 as DOCX, D02 and D17 as text PDF, D19 as an image-only PDF):

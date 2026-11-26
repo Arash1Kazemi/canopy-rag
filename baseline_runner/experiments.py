@@ -191,8 +191,21 @@ def retrieve_for_all(ctx, embedding_id, chunk_name, k, questions):
     return found
 
 
-def run_e3(ctx, llm_ids, embedding_id, chunk_name=BASELINE_CHUNKS, k=BASELINE_K, question_ids=None, name="e3"):
-    """E3: the whole path: retrieve inside the node, then answer. Gives M01 to M04, M09, M12, M14, M22 to M25."""
+ENGINES = ("baseline", "core")
+
+
+def run_e3(ctx, llm_ids, embedding_id, chunk_name=BASELINE_CHUNKS, k=BASELINE_K, question_ids=None, name="e3",
+           engine="baseline"):
+    """E3: the whole path: retrieve inside the node, then answer. Gives M01 to M04, M09, M12, M14, M22 to M25.
+
+    engine="baseline" (the default, so the Phase 2 results stay reproducible) uses this module's retrieval and prompt
+    code. engine="core" gives retrieval, the context and the answer to rag_core (architecture.md section 9, decision A48);
+    it writes the same files plus the core's extra columns, and it needs a chunk setting that is a core policy."""
+    if engine not in ENGINES:
+        raise ValueError(f"engine is one of {ENGINES}, not {engine!r}")
+    if engine == "core":
+        from rag_core.evaluation import run_core_e3   # imported here: rag_core.evaluation imports this module
+        return run_core_e3(ctx, llm_ids, embedding_id, chunk_name, k, question_ids, name)
     questions = [q for q in ctx.questions if question_ids is None or q["question_id"] in question_ids]
     found = retrieve_for_all(ctx, embedding_id, chunk_name, k, questions)
     rows, summary = [], []

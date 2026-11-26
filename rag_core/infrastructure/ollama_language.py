@@ -10,11 +10,14 @@ SUGGESTION_OPTIONS = {"num_predict": 512}
 
 
 class OllamaLanguageModel:
-    def __init__(self, model_tag=DEFAULT_LLM_TAG, client=None, options=None):
+    def __init__(self, model_tag=DEFAULT_LLM_TAG, client=None, options=None, think=None):
         self.model_tag = model_tag
         self.client = client or OllamaClient()
         self.options = dict(SUGGESTION_OPTIONS if options is None else options)
+        self.think = think          # False switches the thinking mode off for models that have one (Phase 2 did this)
+        self.last_stats = None      # the timings of the latest reply (Stats), so an evaluation can record M22 to M24
 
     def generate(self, prompt):
-        reply = self.client.chat(self.model_tag, [{"role": "user", "content": prompt}], options=self.options)
+        reply = self.client.chat(self.model_tag, [{"role": "user", "content": prompt}], options=self.options, think=self.think)
+        self.last_stats = reply.stats
         return reply.text

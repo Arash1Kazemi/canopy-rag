@@ -109,7 +109,7 @@ The proposal asks for a local database, a vector index, file storage and CSV out
 | `HierarchyRepository` (`organization/repository.py`) | `CsvHierarchyRepository` (the registry files), `SqliteHierarchyRepository` (Phase 6), `InMemoryHierarchyRepository` | none needed |
 | `IssueRepository` (`issues/repository.py`) | `InMemoryIssueRepository`, `SqliteIssueRepository` (Phase 7); the seed import in `infrastructure/issues_csv.py` | none needed |
 | CSV output | `infrastructure/csv_export.py` (catalog and chunks) | transfer packages (Phase 11) |
-| Vector index | none yet (Phase 2 used an in-memory list in `baseline_runner/retrieval.py`) | a `VectorIndex` interface in Phase 8 |
+| `VectorIndex` (`rag/vector_index.py`) | `InMemoryVectorIndex`, `SqliteVectorIndex` (Phase 8A): exact cosine search, the node filter applied before any score | none needed (the Phase 2 runner keeps its own in-memory list in `baseline_runner/retrieval.py`) |
 
 SQLite comes with Python, needs no server and no download, and is one file, which suits an offline laptop. The same unit tests run against the in-memory and the SQLite repository (`tests/test_core_storage.py`), which shows they are interchangeable.
 
@@ -124,19 +124,20 @@ rag_core/
 ├── shared/kernel.py              shared kernel: DomainError, Confidentiality, TransferDetailLevel, TransferRule, DomainEvent
 ├── organization/                 Hierarchy (with the layer registry), Node, Layer, NodeIdentifier, LayerIndex; HierarchyRepository
 ├── knowledge/                    KnowledgeItem, KnowledgeVersion, KnowledgeChunk, value objects; metadata; chunking
-├── rag/citation.py               the citation model
+├── rag/                          citation model, vector index, indexing, retrieval, context, answering (Phase 8A to 8C)
 ├── models/ports.py               EmbeddingModel, LanguageModel, VisionModel
 ├── ingestion/                    formats, extractors, samples, the ingestion use case, case-study requests
 ├── issues/                       Issue, IssueStatus, progress, node rules, comparison, suggestions (Phase 7)
-├── workflows/                    the node and layer workflows (Phase 6), the issue workflows (Phase 7)
-├── infrastructure/               memory, SQLite (knowledge and hierarchy), registry CSV, CSV export, Ollama vision
+├── workflows/                    the node and layer workflows (Phase 6), the issue workflows (Phase 7), the question workflow and the answer prompts (Phase 8)
+├── infrastructure/               memory, SQLite (knowledge, hierarchy, issues, vectors), registry CSV, CSV export, Ollama (embedding, language, vision)
+├── rag_wiring.py, evaluation.py, cli_rag.py     plain modules on top of the layers: the case-study wiring, the Phase 8D evaluation, the index, ask and evaluate commands
 ├── fakes.py                      test doubles for the core
 └── __main__.py                   python -m rag_core ...
 ```
 
-`baseline_runner/` stays as it is: it is the Phase 2 experiment harness, and its results are the baseline. Phase 8 moves retrieval and answering into `rag_core` behind the same metrics, and the Phase 2 runner then becomes a thin evaluation script.
+`baseline_runner/` stays: it is the Phase 2 experiment harness, and its results are the baseline. Phase 8 put retrieval and answering into `rag_core` and added `e3 --engine core` to the runner (decision A48). The full move, where the runner becomes a thin evaluation script, is not done: the grading and metric code still lives in `baseline_runner/` and `rag_core/evaluation.py` imports it. Moving it is a later step, best taken in Phase 14 when the held-out questions are used.
 
-## 10. Decisions made in Phases 3 to 7
+## 10. Decisions made in Phases 3 to 8
 
 | # | Decision | Why | To confirm |
 | --- | --- | --- | --- |
@@ -187,3 +188,7 @@ rag_core/
 | A45 | Context is filled in rank order and stops at the first chunk that does not fit; no chunk is cut; `min_score` has no default | A threshold number needs a source | yes |
 | A46 | Indexing, retrieval and answering live in `rag_core/rag/` as pure use cases that take their ports as arguments; prompt files are loaded in `rag_core/workflows/` | The domain reads no files; architecture.md section 4 puts use cases in the application layer, so this is a deliberate exception | yes |
 | A47 | Answer prompt P13 (v2) adds a conflict rule (report both documents) and "cite only files shown"; P01 stays the default until both are compared on the 26 questions | Q06 failed in the baseline; no prompt is promoted without a measurement | yes |
+| A48 | The Phase 2 runner can give retrieval and answering to the core: `python -m baseline_runner e3 --engine core` (e3 only, default `baseline`). The move is not complete: E1, E2, E5, E6, the Phase 2 retrieval code and the grading and metric code stay in `baseline_runner`, and `rag_core/evaluation.py` calls that grading code | The Phase 2 results must stay reproducible, and the grading rules GR1 to GR5 should have one copy until Phase 14; a full move would touch results that are the baseline | yes |
+| A49 | `evaluate` reads the case-study Markdown files (not the real DOCX and PDF), into its own `knowledge.sqlite` inside the results folder, and cuts chunks with `words80`. It differs from the Phase 2 run in three known ways: only active versions are indexed (no D10 v1, no D12 copy), citations are checked against the given chunks (H09), and an answer with no valid citation becomes a refusal (A44) | Same text and same chunks as the baseline, so a difference in the numbers comes from retrieval and answering, not from the files | yes |
+| A50 | The baseline for the comparison is `results/e3-first` (the regraded files, the row of the same LLM id); M06 to M08 are computed from its rows the way the core run computes them; without that folder the `baseline` column of `metrics/metrics.csv` is used; a number that is missing on either side is shown as "not measured". M05 is never measured before Phase 10 | One honest table; no number is invented | yes |
+| A51 | A setup problem exits with code 2 and one printed line, never a traceback: Ollama not reachable, a model not pulled, no index, a stale index, an unknown node or model id, an address that is not this machine (H06). A refusal is a result and exits with 0. `evaluate` will not write into a folder that already holds a run | A scripted run must tell "the system said no" from "the system could not run"; no result is overwritten | yes |
