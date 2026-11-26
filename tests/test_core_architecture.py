@@ -60,3 +60,11 @@ def test_every_package_has_a_layer():
 def test_the_issue_domain_is_checked():
     checked = {p.name for p in (CORE / "issues").glob("*.py")}
     assert {"model.py", "status.py", "progress.py", "rules.py", "comparison.py", "suggestions.py", "repository.py"} <= checked
+
+
+def test_the_rag_domain_is_checked():
+    """Phase 8: the vector index, indexing and retrieval are domain code; their adapters live in infrastructure."""
+    checked = {p.name for p in (CORE / "rag").glob("*.py")}
+    assert {"citation.py", "vector_index.py", "indexing.py", "retrieval.py"} <= checked
+    for adapter in ("memory.py", "sqlite_vectors.py", "ollama_embedding.py"):
+        assert (CORE / "infrastructure" / adapter).is_file()

@@ -7,7 +7,15 @@ from typing import Protocol, Sequence
 
 
 class EmbeddingModel(Protocol):
-    def embed(self, texts: Sequence[str]) -> list: ...
+    """Phase 8: documents and questions are embedded differently. qwen3-embedding wants an instruction before a question
+    and none before a document (prompts P09 and P10), so the adapter, not the core, formats the text."""
+    model_tag: str   # stored with every vector; a different tag means the index is rebuilt
+
+    def embed(self, texts: Sequence[str]) -> list:
+        """One vector per document text (a chunk), in order."""
+
+    def embed_query(self, text: str) -> list:
+        """One vector for a question."""
 
 
 class LanguageModel(Protocol):

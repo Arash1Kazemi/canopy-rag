@@ -1,4 +1,7 @@
 """Test doubles for the core, in one place (unit-testing rule 3). tests/test_core_fakes.py tests them."""
+import hashlib
+import math
+import re
 from pathlib import Path
 
 
@@ -63,3 +66,33 @@ class StubLanguageModel:
         if self.error is not None:
             raise self.error
         return self.reply
+
+
+class HashingEmbedder:
+    """A fake embedding model (Phase 8): a hashed bag of words. Each word adds 1 to one of `dims` slots chosen by its
+    md5, and the vector is scaled to length 1. The same text always gives the same vector, texts that share words point
+    the same way, and nothing is downloaded. It is also a spy: `batches` holds the size of every `embed` call and
+    `queries` every question. A question gets no instruction here; the real adapter adds one."""
+
+    def __init__(self, dims=64, model_tag="fake-hash-64"):
+        self.dims = dims
+        self.model_tag = model_tag
+        self.batches = []
+        self.queries = []
+
+    def vector(self, text):
+        slots = [0.0] * self.dims
+        for word in re.findall(r"[a-z0-9]+", text.lower()):
+            digest = hashlib.md5(word.encode("utf-8")).digest()   # md5 is stable across runs, unlike hash()
+            slots[int.from_bytes(digest[:2], "big") % self.dims] += 1.0
+        length = math.sqrt(sum(x * x for x in slots))
+        return [x / length for x in slots] if length else slots
+
+    def embed(self, texts):
+        texts = list(texts)
+        self.batches.append(len(texts))
+        return [self.vector(t) for t in texts]
+
+    def embed_query(self, text):
+        self.queries.append(text)
+        return self.vector(text)

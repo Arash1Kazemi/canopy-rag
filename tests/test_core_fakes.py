@@ -32,3 +32,14 @@ def test_the_stub_language_model_replies_and_remembers():
     with pytest.raises(ConnectionError):
         failing.generate("p2")
     assert failing.prompts == ["p2"]
+
+
+def test_the_hashing_embedder_is_deterministic_and_records_its_calls():
+    from rag_core.fakes import HashingEmbedder
+    embedder = HashingEmbedder(dims=16)
+    first = embedder.embed(["135 buses", "chlorine"])
+    assert first == HashingEmbedder(dims=16).embed(["135 buses", "chlorine"])
+    assert len(first[0]) == 16 and abs(sum(x * x for x in first[0]) - 1) < 1e-9
+    assert embedder.embed_query("135 buses") == first[0]
+    assert embedder.batches == [2] and embedder.queries == ["135 buses"]
+    assert HashingEmbedder().embed([""]) == [[0.0] * 64]

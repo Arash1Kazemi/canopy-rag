@@ -2,6 +2,7 @@
 import copy
 
 from ..knowledge.model import KnowledgeItem
+from ..rag.vector_index import cosine, rank
 
 
 class InMemoryKnowledgeRepository:
@@ -89,3 +90,30 @@ class InMemoryIssueRepository:
         if str(issue.issue_id) not in self._issues:
             raise ValueError(f"issue {issue.issue_id} is not stored, so it cannot be updated")
         self._issues[str(issue.issue_id)] = issue
+
+
+class InMemoryVectorIndex:
+    """The exact vector index in a dict (Phase 8A). `similarity` is injectable so a test can spy on what is scored."""
+
+    def __init__(self, similarity=cosine):
+        self._records = {}
+        self.similarity = similarity
+
+    def add(self, records):
+        for record in records:
+            self._records[record.chunk_id] = record
+
+    def chunk_ids(self):
+        return set(self._records)
+
+    def records(self, node_id=None):
+        return [r for _, r in sorted(self._records.items()) if node_id is None or r.node_id == str(node_id)]
+
+    def signatures(self):
+        return {r.signature for r in self._records.values()}
+
+    def clear(self):
+        self._records.clear()
+
+    def search(self, query_vector, k, index_filter):
+        return rank(self.records(index_filter.node_id), query_vector, k, index_filter, self.similarity)
